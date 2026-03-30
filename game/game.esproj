@@ -13,6 +13,6 @@
     <TypeScriptConfiguration Remove="src\NewFolder\**" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="public\" />
+    <Folder Include="src\assets\" />
   </ItemGroup>
 </Project>
