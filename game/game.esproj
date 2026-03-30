@@ -12,4 +12,7 @@
     <None Remove="src\NewFolder\**" />
     <TypeScriptConfiguration Remove="src\NewFolder\**" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="public\" />
+  </ItemGroup>
 </Project>
