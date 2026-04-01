@@ -1,10 +1,11 @@
 import './index.css';
 import { Game } from './engine/Game.js';
-import { GameScene } from './game/GameScene.js';
+import { GameScene } from './game/scenes/GameScene.js';
+import { MainMenuScene } from './game/scenes/MainMenuScene.js';
 
 (async () => {
     const game = new Game();
     await game.init();
 
-    game.sceneManager.change(new GameScene(game));
+    game.sceneManager.change(new MainMenuScene(game));
 })();
