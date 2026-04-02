@@ -1,4 +1,4 @@
-import { Container, Text } from 'pixi.js';
+﻿import { Container, Text } from 'pixi.js';
 
 export class HUD {
     constructor(game) {
@@ -20,6 +20,6 @@ export class HUD {
     }
 
     update(delta) {
-        // despu�s lo conectamos a datos reales
+        // después lo conectamos a datos reales
     }
 }

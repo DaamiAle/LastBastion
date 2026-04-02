@@ -1,4 +1,4 @@
-import { Container, Graphics, Text } from 'pixi.js';
+﻿import { Container, Graphics, Text } from 'pixi.js';
 
 export class Button extends Container {
     constructor({ text, width = 300, height = 50, onClick }) {
@@ -25,7 +25,7 @@ export class Button extends Container {
         this.addChild(this.bg);
         this.addChild(this.label);
 
-        // interacci�n
+        // interacción
         this.eventMode = 'static';
         this.cursor = 'pointer';
 
