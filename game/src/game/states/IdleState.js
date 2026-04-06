@@ -1,6 +1,6 @@
 ﻿import { State } from '../../engine/State.js';
 import { ChaseState } from './ChaseState.js';
-import { distanceSq } from '../../engine/utils.js';
+import { distanceSq } from '../../engine/Utils.js';
 
 export class IdleState extends State {
     update(delta) {
