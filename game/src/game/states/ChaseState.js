@@ -1,5 +1,5 @@
 ﻿import { State } from '../../engine/State.js';
-import { distanceSq } from '../../engine/utils.js';
+import { distanceSq } from '../../engine/Utils.js';
 import { IdleState } from './IdleState.js';
 import { AttackState } from './AttackState.js';
 
