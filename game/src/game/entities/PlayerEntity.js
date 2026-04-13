@@ -2,6 +2,7 @@
 import { Graphics } from 'pixi.js';
 import { distanceSq } from '../../engine/Utils.js';
 import { BulletEntity } from './BulletEntity.js';
+import { C4Entity } from './C4Entity.js';
 
 export class PlayerEntity extends Entity {
     constructor(scene) {
@@ -18,6 +19,8 @@ export class PlayerEntity extends Entity {
         this.attackRange = 384;
         this.fireCooldown = 75; // ms
         this.fireTimer = 0;
+        this.c4Cooldown = 5000; // ms
+        this.c4Timer = 0;
 
         this.addTag("player");
         this.addTag("movable");
@@ -41,6 +44,28 @@ export class PlayerEntity extends Entity {
         const input = this.scene.game.input;
 
         const speed = this.baseSpeed * delta.deltaMS; // 🔥 FIX unidad
+        this.c4Timer -= delta.deltaMS;
+
+        // 🔥 colocar C4
+        if (this.c4Timer <= 0) {
+            // Modo 1 → timer
+            if (input.isKeyDown("Digit1")) this.placeC4("timer");
+            
+            // Modo 2 → detonador
+            if (input.isKeyDown("Digit2")) this.placeC4("remote");
+            
+        }
+
+        // 🔥 Explosion remota
+        if (input.isKeyDown("KeyE")) {
+            const c4s = this.scene.entities.filter(e => e.type == "c4");
+
+            for (const c4 of c4s) {
+                if (c4.mode == "remote") {
+                    c4.explode();
+                }
+            }
+        }
 
         let dx = 0;
         let dy = 0;
@@ -127,6 +152,19 @@ export class PlayerEntity extends Entity {
                 )
             );
         }
+    }
+
+    placeC4(mode) {
+        this.c4Timer = this.c4Cooldown;
+
+        const c4 = new C4Entity(
+            this.scene,
+            this.container.x,
+            this.container.y,
+            mode
+        );
+
+        this.scene.addEntity(c4);
     }
 
     takeDamage(amount) {
