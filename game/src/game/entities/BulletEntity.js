@@ -1,6 +1,6 @@
 ﻿import { Entity } from '../../engine/Entity.js';
 import { Graphics } from 'pixi.js';
-import { distanceSq } from '../../engine/utils.js';
+import { distanceSq } from '../../engine/Utils.js';
 
 export class BulletEntity extends Entity {
     constructor(scene, x, y, dirX, dirY) {
