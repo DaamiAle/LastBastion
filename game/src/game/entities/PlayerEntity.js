@@ -15,7 +15,7 @@ export class PlayerEntity extends Entity {
         this.baseSpeed = 0.25;
         this.canTakeDamage = true;
 
-        this.attackRange = 500;
+        this.attackRange = 384;
         this.fireCooldown = 75; // ms
         this.fireTimer = 0;
 
