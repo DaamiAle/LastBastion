@@ -23,17 +23,23 @@ export class GameScene extends Scene {
         this.fortress = new FortressEntity(this);
         this.addEntity(this.fortress);
 
-        this.addEntity(new PlayerEntity(this));
+        this.player = new PlayerEntity(this);
+        this.addEntity(this.player);
 
 
-        for (let i = 0; i < 25; i++) {
+        for (let i = 0; i < 1024; i++) {
             this.addEntity(new ZombieEntity(this));
         }
     }
 
     update(delta) {
         super.update(delta);
-        this.hud.update(delta);
+        const hudData = {
+            fortressHp: this.fortress.hp,
+            playerHp: this.player.health,
+            zombies: this.entities.filter(e => e.type === "zombie").length
+        };
+        this.hud.update(hudData);
     }
 
     exit() {

@@ -26,7 +26,13 @@ export class Scene {
         }
 
         // limpiar muertos
-        this.entities = this.entities.filter(e => e.isAlive);
+        this.entities = this.entities.filter(e => {
+            if (!e.isAlive) {
+                e.destroy(); // 🔥 CLAVE
+                return false;
+            }
+            return true;
+        });
     }
 
     exit() {

@@ -19,7 +19,17 @@ export class HUD {
         this.container.addChild(this.text);
     }
 
-    update(delta) {
+    update(data) {
         // después lo conectamos a datos reales
+        /*
+        data = {
+            fortressHp: this.fortress.hp,
+            playerHp: this.player.hp,
+            zombies: this.entities.filter(e => e.type === "zombie").length
+        };
+        
+        */
+        this.text.text = `Fortress HP: ${data.fortressHp} | Player HP: ${data.playerHp} | Zombies: ${data.zombies}`;
     }
+
 }

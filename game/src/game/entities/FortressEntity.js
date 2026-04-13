@@ -9,6 +9,12 @@ export class FortressEntity extends Entity {
 
         this.maxHp = 1000;
         this.hp = this.maxHp;
+        this.regenRate = 5; // HP por segundo
+        this.fireRate = 600; // ms (M16 aprox)
+        this.fireTimer = 0;
+
+        this.canTakeDamage = true;
+
 
         this.addTag("target");
         this.addTag("static");
@@ -18,7 +24,7 @@ export class FortressEntity extends Entity {
         super.enter();
 
         this.graphics = new Graphics()
-            .rect(0, 0, 120, 120)
+            .rect(0, 0, 128, 128)
             .fill(0x888888);
 
         this.container.addChild(this.graphics);
@@ -36,10 +42,13 @@ export class FortressEntity extends Entity {
 
     takeDamage(amount) {
         this.hp -= amount;
-
+        this.applyFlash(true);
         if (this.hp < 0) this.hp = 0;
 
-        console.log("Fortress HP:", this.hp);
+        //console.log("Fortress HP:", this.hp);
+    }
+    update(delta) {
+        this.applyFlash(false);
     }
 
     getPosition() {
@@ -47,5 +56,13 @@ export class FortressEntity extends Entity {
             x: this.container.x,
             y: this.container.y
         };
+    }
+
+    applyFlash(active) {
+        if (active) {
+            this.graphics.alpha = 0.25// ahora
+        } else {
+            this.graphics.alpha = 1;
+        }
     }
 }

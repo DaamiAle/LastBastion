@@ -28,6 +28,10 @@ export class ChaseState extends State {
         // 🔴 rango máximo (perder target)
         const maxRangeSq = zombie.detectionRadius * zombie.detectionRadius * 1.5;
 
+        //console.log("Max range:", Math.sqrt(maxRangeSq).toFixed(2));
+        //console.log("Distance to target:", Math.sqrt(distSq).toFixed(2));
+        //console.log("Target type:", zombie.target.type);
+
         if (distSq > maxRangeSq) {
             zombie.target = null;
             zombie.fsm.change(new IdleState(zombie));
@@ -36,6 +40,7 @@ export class ChaseState extends State {
 
         // 🔴 entrar en ataque
         const attackRangeSq = zombie.attackRange * zombie.attackRange;
+
 
         if (distSq < attackRangeSq) {
             zombie.fsm.change(new AttackState(zombie));

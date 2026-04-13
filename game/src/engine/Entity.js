@@ -23,13 +23,14 @@ export class Entity {
     update(delta) { }
 
     destroy() {
-        this.isAlive = false;
+        if (!this.container) return;
 
         if (this.container.parent) {
             this.container.parent.removeChild(this.container);
         }
 
         this.container.destroy({ children: true });
+        this.container = null;
     }
 
     addTag(tag) {

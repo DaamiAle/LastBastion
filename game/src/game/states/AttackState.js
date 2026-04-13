@@ -4,6 +4,7 @@ import { ChaseState } from './ChaseState.js';
 
 export class AttackState extends State {
     enter() {
+        // el ataque se ejecuta inmediatamente al entrar, luego el cooldown controla la cadencia
         this.cooldown = 0;
     }
 
@@ -31,13 +32,13 @@ export class AttackState extends State {
         }
 
         // 🔥 cooldown de ataque
-        this.cooldown -= delta.deltaTime;
+        this.cooldown -= delta.deltaMS;
 
         if (this.cooldown <= 0) {
             this.cooldown = zombie.attackCooldown;
 
             // aplicar daño
-            if (zombie.target.takeDamage) {
+            if (zombie.target.canTakeDamage) {
                 zombie.target.takeDamage(zombie.damage);
             }
         }
