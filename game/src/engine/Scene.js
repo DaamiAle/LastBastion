@@ -5,7 +5,8 @@ export class Scene {
         this.game = game;
 
         this.container = null;
-        this.entities = []; 
+        this.entities = [];
+        this.collisionSystem = null;
     }
 
     enter() {
@@ -25,10 +26,17 @@ export class Scene {
             }
         }
 
-        // limpiar muertos
+        if (this.collisionSystem != null) {
+            this.collisionSystem.processContacts();
+            this.collisionSystem.resolveCollisions();
+        }
+        this.cleanup();
+    }
+
+    cleanup() {
         this.entities = this.entities.filter(e => {
             if (!e.isAlive) {
-                e.destroy(); // 🔥 CLAVE
+                e.destroy(); // 🔥 clave
                 return false;
             }
             return true;

@@ -1,5 +1,5 @@
 ﻿import { Entity } from '../../engine/Entity.js';
-import { Graphics } from 'pixi.js';
+import { Sprite, Texture, Assets } from 'pixi.js';
 import { FSM } from '../../engine/FSM.js';
 import { IdleState } from '../states/IdleState.js';
 
@@ -21,18 +21,25 @@ export class ZombieEntity extends Entity {
         this.hitTimer = 0;
         this.canTakeDamage = true;
         this.fsm = new FSM(this);
+        this.texture = Assets.get('/assets/zombie.png');
+        this.sprite = null;
 
+        this.collider.radius = 32 * 0.8;
         this.target = null;
     }
 
     enter() {
         super.enter();
 
-        this.graphics = new Graphics()
-            .rect(0, 0, this.width, this.width)
-            .fill(this.baseColor);
+        //this.graphics = new Graphics()
+        //    .rect(0, 0, this.width, this.width)
+        //    .fill(this.baseColor);
+        //this.texture = Texture.from('/assets/zombie.png');
+        this.sprite = new Sprite(this.texture);
+        this.sprite.anchor.set(0.5);
 
-        this.container.addChild(this.graphics);
+
+        this.container.addChild(this.sprite);
 
         // spawn random (solo para test)
         this.container.x = Math.random() * 1920 * 2;
@@ -41,10 +48,10 @@ export class ZombieEntity extends Entity {
         this.fsm.change(new IdleState(this));
     }
 
+
     update(delta) {
         this.fsm.update(delta);
 
-        //this.setColor(this.baseColor);
         this.applyFlash(false);
     }
 
@@ -57,7 +64,6 @@ export class ZombieEntity extends Entity {
     takeDamage(amount) {
         this.hp -= amount;
 
-        //this.setColor(0xff0000);
         this.applyFlash(true);
 
         if (this.hp <= 0) {
@@ -67,17 +73,12 @@ export class ZombieEntity extends Entity {
     die() {
         this.isAlive = false;
     }
-    setColor(color) {
-        this.graphics.clear()
-            .rect(0, 0, this.width, this.width)
-            .fill(color);
-    }
 
     applyFlash(active) {
         if (active) {
-            this.graphics.alpha = 0.25; // ahora
+            this.sprite.alpha = 0.25; // ahora
         } else {
-            this.graphics.alpha = 1;
+            this.sprite.alpha = 1;
         }
     }
 }

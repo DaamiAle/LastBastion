@@ -13,6 +13,11 @@ export class Entity {
 
         this.container = new Container();
 
+        this.collider = {
+            type: "circle",
+            radius: 8 // default
+        };
+
         this.isAlive = true;
     }
 

@@ -1,5 +1,5 @@
 ﻿import { Entity } from '../../engine/Entity.js';
-import { Graphics } from 'pixi.js';
+import { Assets, Sprite } from 'pixi.js';
 import { distanceSq } from '../../engine/Utils.js';
 import { BulletEntity } from './BulletEntity.js';
 import { C4Entity } from './C4Entity.js';
@@ -16,11 +16,15 @@ export class PlayerEntity extends Entity {
         this.baseSpeed = 0.25;
         this.canTakeDamage = true;
 
+        this.collider.radius = 32 * 0.8;
+
         this.attackRange = 384;
         this.fireCooldown = 75; // ms
         this.fireTimer = 0;
         this.c4Cooldown = 5000; // ms
         this.c4Timer = 0;
+        this.texture = Assets.get('/assets/player.png');
+        this.sprite = null;
 
         this.addTag("player");
         this.addTag("movable");
@@ -29,15 +33,16 @@ export class PlayerEntity extends Entity {
     enter() {
         super.enter();
 
-        this.graphics = new Graphics()
-            .rect(0, 0, this.width, this.width)
-            .fill(this.baseColor);
+        this.sprite = new Sprite(this.texture);
+        this.sprite.anchor.set(0.5);
+        this.container.addChild(this.sprite);
 
-        this.container.addChild(this.graphics);
 
-        // spawn inicial (después será la fortaleza)
-        this.container.x = 400;
-        this.container.y = 300;
+        // spawn inicial en el centro
+        const width = this.scene.game.app.renderer.width;
+        const height = this.scene.game.app.renderer.height;
+        this.container.x = width / 2;
+        this.container.y = height / 2;
     }
 
     update(delta) {
@@ -170,7 +175,6 @@ export class PlayerEntity extends Entity {
     takeDamage(amount) {
         this.health -= amount;
         
-        //this.setColor(0xff0000);
         this.applyFlash(true);
         if (this.health < 0) this.health = 0;
         
@@ -180,15 +184,10 @@ export class PlayerEntity extends Entity {
 
     applyFlash(active) {
         if (active) {
-            this.graphics.alpha = 0.25; // ahora
+            this.sprite.alpha = 0.25; // ahora
         } else {
-            this.graphics.alpha = 1;
+            this.sprite.alpha = 1;
         }
     }
 
-    setColor(color) {
-        this.graphics.clear()
-            .rect(0, 0, this.width, this.width)
-            .fill(color);
-    }
 }

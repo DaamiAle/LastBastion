@@ -3,16 +3,19 @@ import { PlayerEntity } from '../entities/PlayerEntity.js';
 import { FortressEntity } from '../entities/FortressEntity.js';
 import { ZombieEntity } from '../entities/ZombieEntity.js';
 import { HUD } from '../../ui/HUD.js';
+import { CollisionSystem } from '../../engine/CollisionSystem.js';
 
 export class GameScene extends Scene {
 
     constructor(game) {
         super(game);
+        this.collisionSystem = new CollisionSystem(this);
 
         this.hud = null;
     }
     enter() {
         super.enter();
+
 
         this.hud = new HUD(this.game);
 

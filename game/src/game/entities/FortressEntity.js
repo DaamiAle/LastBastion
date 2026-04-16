@@ -1,5 +1,5 @@
 ﻿import { Entity } from '../../engine/Entity.js';
-import { Graphics } from 'pixi.js';
+import { Assets, Sprite } from 'pixi.js';
 
 export class FortressEntity extends Entity {
     constructor(scene) {
@@ -13,8 +13,15 @@ export class FortressEntity extends Entity {
         this.fireRate = 600; // ms (M16 aprox)
         this.fireTimer = 0;
 
-        this.canTakeDamage = true;
+        this.collider = {
+            type: "aabb",
+            halfWidth: 224,  // ajustable
+            halfHeight: 224
+        };
 
+        this.canTakeDamage = true;
+        this.texture = Assets.get('/assets/fortress.png');
+        this.sprite = null;
 
         this.addTag("target");
         this.addTag("static");
@@ -23,11 +30,12 @@ export class FortressEntity extends Entity {
     enter() {
         super.enter();
 
-        this.graphics = new Graphics()
-            .rect(0, 0, 128, 128)
-            .fill(0x888888);
+        this.sprite = new Sprite(this.texture);
 
-        this.container.addChild(this.graphics);
+        this.sprite.scale.set(0.5);
+        this.sprite.anchor.set(0.5);
+
+        this.container.addChild(this.sprite);
 
         // 🔥 POSICIÓN CENTRAL (importante)
         const width = this.scene.game.app.renderer.width;
@@ -36,8 +44,6 @@ export class FortressEntity extends Entity {
         this.container.x = width / 2;
         this.container.y = height / 2;
 
-        // 🔥 centrar visualmente
-        this.container.pivot.set(60, 60);
     }
 
     takeDamage(amount) {
@@ -45,7 +51,6 @@ export class FortressEntity extends Entity {
         this.applyFlash(true);
         if (this.hp < 0) this.hp = 0;
 
-        //console.log("Fortress HP:", this.hp);
     }
     update(delta) {
         this.applyFlash(false);
@@ -60,9 +65,9 @@ export class FortressEntity extends Entity {
 
     applyFlash(active) {
         if (active) {
-            this.graphics.alpha = 0.25// ahora
+            this.sprite.alpha = 0.25// ahora
         } else {
-            this.graphics.alpha = 1;
+            this.sprite.alpha = 1;
         }
     }
 }
