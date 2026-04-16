@@ -13,8 +13,13 @@
     <TypeScriptConfiguration Remove="src\NewFolder\**" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="public\assets\" />
     <Folder Include="src\assets\" />
     <Folder Include="src\engine\system\" />
+    <Folder Include="src\game\entities\" />
+    <Folder Include="src\game\scenes\" />
+    <Folder Include="src\game\states\" />
     <Folder Include="src\game\systems\" />
+    <Folder Include="src\ui\" />
   </ItemGroup>
 </Project>
