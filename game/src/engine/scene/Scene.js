@@ -1,13 +1,12 @@
-﻿import { Lifecycle } from '../core/Lifecycle.js';
+﻿import { SpatialHashGrid } from '../spatial/SpatialHashGrid.js';
+import { Transform } from '../world/components/Transform.js';
 
-export class Scene extends Lifecycle {
-    constructor(runtime) {
-        super();
-
-        this.runtime = runtime;
-
+export class Scene {
+    constructor() {
         this.entities = [];
         this.systems = [];
+
+        this.grid = new SpatialHashGrid(300); // tamaño de celda configurable
     }
 
     addEntity(entity) {
@@ -21,30 +20,25 @@ export class Scene extends Lifecycle {
     }
 
     update(delta) {
-        // 1. lógica opcional de entidades
+        // =========================
+        // 1. REBUILD GRID
+        // =========================
+        this.grid.clear();
+
         for (const e of this.entities) {
-            if (e.active && e.update) {
-                e.update(delta);
-            }
+            if (!e.active) continue;
+
+            const t = e.get(Transform);
+            if (!t) continue;
+
+            this.grid.insert(e, t.position.x, t.position.y);
         }
 
-        // 2. systems
+        // =========================
+        // 2. SYSTEMS UPDATE
+        // =========================
         for (const system of this.systems) {
             system.update(this.entities, delta);
         }
-    }
-
-    destroy() {
-        for (const e of this.entities) {
-            const sprite = e.get?.(Sprite);
-
-            if (sprite?.view) {
-                sprite.view.destroy();
-                sprite.view = null;
-            }
-        }
-
-        this.entities.length = 0;
-        this.systems.length = 0;
     }
 }

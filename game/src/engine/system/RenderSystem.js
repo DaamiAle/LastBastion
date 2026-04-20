@@ -1,6 +1,6 @@
-﻿import { Sprite as PixiSprite } from 'pixi.js';
-import { Transform } from '../world/components/Transform.js';
-import { Sprite } from '../world/components/Sprite.js';
+﻿import { Transform } from '../world/components/Transform.js';
+import { Sprite as SpriteComponent } from '../world/components/Sprite.js';
+import { Sprite as PixiSprite } from 'pixi.js';
 
 export class RenderSystem {
     constructor(stage) {
@@ -9,23 +9,26 @@ export class RenderSystem {
 
     update(entities) {
         for (const e of entities) {
+            // Obtener componentes necesarios
             const transform = e.get(Transform);
-            const sprite = e.get(Sprite);
+            const spriteComp = e.get(SpriteComponent);
+            // si falta alguno, saltar
+            if (!e.has(Transform) || !e.has(SpriteComponent)) continue;
 
-            if (!transform || !sprite) continue;
+            // crear sprite si no existe
+            if (!spriteComp.sprite) {
+                const spritePixi = new PixiSprite(spriteComp.texture);
+                // Usamos la propiedad "scale" del transform para ajustar el tamaño del sprite 1 es exactamente el tamaño de la textura, 2 es el doble, etc.
+                spritePixi.scale.set(transform.scale.x, transform.scale.y);
+                this.stage.addChild(spritePixi);
 
-            if (!sprite.view) {
-                sprite.view = new PixiSprite(sprite.texture);
-                this.stage.addChild(sprite.view);
+                spriteComp.sprite = spritePixi;
             }
+            const sprite = spriteComp.sprite;
 
-            const view = sprite.view;
-
-            view.x = transform.position.x;
-            view.y = transform.position.y;
-
-            view.scale.set(transform.scale.x, transform.scale.y);
-            view.rotation = transform.rotation;
+            // actualizar posición del sprite
+            sprite.x = transform.position.x;
+            sprite.y = transform.position.y;
         }
     }
 }

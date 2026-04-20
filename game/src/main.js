@@ -1,25 +1,29 @@
 ﻿import './index.css';
-import { Runtime } from './engine/core/Runtime';
+import { Runtime } from './engine/core/Runtime.js';
+import { TestScene } from './game/scenes/TestScene.js';
 
 async function start() {
-    const game = new Runtime();
-    await game.init();
+    const runtime = new Runtime();
+    await runtime.init();
+
+    // 👇 activar escena
+    await runtime.sceneManager.change(new TestScene());
 
     // 👇 botones
     document.getElementById('pause').onclick = () => {
-        game.time.setScale(0);
+        runtime.time.setScale(0);
     };
 
     document.getElementById('resume').onclick = () => {
-        game.time.setScale(1);
+        runtime.time.setScale(1);
     };
 
     document.getElementById('slow').onclick = () => {
-        game.time.setScale(0.2);
+        runtime.time.setScale(0.2);
     };
 
     document.getElementById('fast').onclick = () => {
-        game.time.setScale(2);
+        runtime.time.setScale(2);
     };
 }
 

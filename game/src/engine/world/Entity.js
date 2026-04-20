@@ -1,5 +1,8 @@
-﻿export class Entity {
+﻿let nextId = 1;
+
+export class Entity {
     constructor() {
+        this.id = nextId++;
         this.components = new Map();
         this.active = true;
     }
@@ -15,9 +18,5 @@
 
     has(componentClass) {
         return this.components.has(componentClass.name);
-    }
-
-    remove(componentClass) {
-        this.components.delete(componentClass.name);
     }
 }
