@@ -1,4 +1,5 @@
-﻿export class SpatialHashGrid {
+﻿// src/engine/spatial/SpatialHashGrid.js
+export class SpatialHashGrid {
     constructor(cellSize = 100) {
         this.cellSize = cellSize;
         this.cells = new Map(); // key -> Set<entity>

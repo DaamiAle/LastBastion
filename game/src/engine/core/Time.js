@@ -1,4 +1,5 @@
-﻿export class Time {
+﻿// src/engine/core/Time.js
+export class Time {
     constructor() {
         this.deltaTime = 0;     // segundos (game time)
         this.elapsed = 0;

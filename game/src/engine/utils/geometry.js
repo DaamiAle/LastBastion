@@ -1,4 +1,4 @@
-﻿
+﻿// src/engine/utils/geometry.js
 /**
  * Calcula la distancia al cuadrado entre dos puntos (x1, y1) y (x2, y2).
  * Usar la distancia al cuadrado es más eficiente al comparar distancias, ya que evita la operación de raíz cuadrada.

@@ -1,4 +1,5 @@
-﻿/**
+﻿// src/engine/utils/math.js
+/**
  * Limita un valor entre un mínimo y un máximo.
  * @param {number} value - El valor a limitar.
  * @param {number} min - El valor mínimo permitido.

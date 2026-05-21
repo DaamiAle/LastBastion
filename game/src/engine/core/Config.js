@@ -1,4 +1,5 @@
-﻿export class Config {
+﻿//src/engine/core/Config.js
+export class Config {
     constructor(options = {}) {
         this.width = options.width ?? 1280;
         this.height = options.height ?? 720;

@@ -1,4 +1,4 @@
-﻿// CircleCollider.js
+﻿// src/engine/world/components/colliders/CircleCollider.js
 
 import { Collider } from './Collider.js';
 

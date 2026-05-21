@@ -1,4 +1,5 @@
-﻿/**
+﻿// src/engine/utils/misc.js
+/**
  * Crea una función que se ejecutará después de que haya pasado un tiempo específico desde la última vez que se llamó.
  * Esto es útil para limitar la frecuencia de ejecución de una función, como en el caso de eventos de entrada o actualizaciones.
  * @param {Function} func - La función a ejecutar después del retraso.

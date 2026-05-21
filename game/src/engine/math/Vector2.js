@@ -1,4 +1,5 @@
-﻿export class Vector2 {
+﻿// src/engine/math/Vector2.js
+export class Vector2 {
     constructor(x = 0, y = 0) {
         this.x = x;
         this.y = y;

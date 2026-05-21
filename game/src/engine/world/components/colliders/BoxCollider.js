@@ -1,4 +1,4 @@
-﻿// BoxCollider.js
+﻿// src/engine/world/components/colliders/BoxCollider.js
 
 import { Collider } from './Collider.js';
 

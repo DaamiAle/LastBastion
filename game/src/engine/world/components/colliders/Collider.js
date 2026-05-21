@@ -1,8 +1,9 @@
-﻿// engine/world/components/colliders/Collider.js
+﻿// src/engine/world/components/colliders/Collider.js
 
 export class Collider {
     constructor(type, options = {}) {
         this.type = type;
         this.layer = options.layer || 'default';
+        this.noCollide = options.noCollide || false;
     }
 }

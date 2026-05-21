@@ -1,4 +1,4 @@
-﻿
+﻿// src/engine/utils/collision.js
 
 export function areCirclesColliding(a, b) {
     const dx = a.x - b.x;

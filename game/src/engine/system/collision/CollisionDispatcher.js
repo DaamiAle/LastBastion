@@ -1,4 +1,4 @@
-﻿// engine/system/collision/CollisionDispatcher.js
+﻿// src/engine/system/collision/CollisionDispatcher.js
 
 import * as C from '../../utils/collision.js';
 

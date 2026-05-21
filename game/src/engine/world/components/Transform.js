@@ -1,4 +1,5 @@
-﻿import { Vector2 } from '../../math/Vector2.js';
+﻿// src/engine/world/components/Transform.js
+import { Vector2 } from '../../math/Vector2.js';
 
 export class Transform {
     constructor() {

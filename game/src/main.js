@@ -1,13 +1,18 @@
-﻿import './index.css';
+﻿//src/main.js
+import './index.css';
 import { Runtime } from './engine/core/Runtime.js';
+import { SceneFactory } from './game/utils/SceneFactory.js';
+import { TopDownBase } from './game/base/TopDownBase.js';
 import { TestScene } from './game/scenes/TestScene.js';
 
 async function start() {
     const runtime = new Runtime();
     await runtime.init();
 
-    // 👇 activar escena
-    await runtime.sceneManager.change(new TestScene());
+    // 👇 Crear escena usando SceneFactory con TopDownBase
+    // TopDownBase se encarga de registrar todos los sistemas en el orden correcto
+    const scene = await SceneFactory.createScene(TopDownBase, runtime, TestScene);
+    await runtime.sceneManager.change(scene);
 
     // 👇 botones
     document.getElementById('pause').onclick = () => {
@@ -37,21 +42,6 @@ start();
 /*
 src/
   engine/
-    core/
-      Game.js
-      Time.js
-      Config.js
-
-    ecs/                     (opcional, si evolucionás a ECS)
-      Entity.js
-      Component.js
-      System.js
-      World.js
-
-    systems/
-      CollisionSystem.js
-      RenderSystem.js
-      PhysicsSystem.js
 
     scene/
       Scene.js
@@ -65,11 +55,6 @@ src/
       Mouse.js
       Gamepad.js
       InputMapper.js
-
-    assets/
-      AssetLoader.js
-      AssetCache.js
-      AssetManifest.js
 
     rendering/
       Renderer.js
@@ -94,18 +79,5 @@ src/
       EventEmitter.js
       Logger.js
       Pool.js
-
-  game/
-    assets/
-      manifest.js
-
-    entities/
-    components/              (si usás ECS)
-    systems/
-    scenes/
-    states/
-    ui/
-
-  main.js
 
 */

@@ -1,4 +1,5 @@
-﻿export const collisionMatrix = {
+﻿// src/game/config/collisionMatrix.js
+export const collisionMatrix = {
     player: {
         enemy: { collide: true }
     },

@@ -1,5 +1,6 @@
-﻿export class Lifecycle {
+﻿// src/engine/core/Lifecycle.js
+export class Lifecycle {
     start() { }
-    update(deltaTime) { }
+    update(time) { }
     destroy() { }
 }

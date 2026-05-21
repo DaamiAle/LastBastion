@@ -1,13 +1,20 @@
-﻿export class Scheduler {
+﻿// src/engine/core/Scheduler.js
+
+export class Scheduler {
     constructor() {
         this.tasks = [];
     }
 
-    update(deltaTime) {
+    update(time) {
+        const dt = time.deltaTime;
+
+        if (dt === 0) return; // pausa automática
+
         for (let i = this.tasks.length - 1; i >= 0; i--) {
             const task = this.tasks[i];
 
-            task.time -= deltaTime;
+            task.time -= dt;
+
             if (task.time <= 0) {
                 task.callback();
 

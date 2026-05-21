@@ -1,44 +1,81 @@
-﻿import { SpatialHashGrid } from '../spatial/SpatialHashGrid.js';
-import { Transform } from '../world/components/Transform.js';
+﻿/**
+ * Scene
+ * 
+ * Capa de aplicación que maneja:
+ * - Carga de assets
+ * - Transiciones
+ * - Bootstrap de gameplay
+ * 
+ * Delegación a World para:
+ * - Lógica ECS
+ * - Sistemas
+ * - Eventos
+ * - Queries
+ */
+
+import { World } from '../world/World.js';
 
 export class Scene {
     constructor() {
-        this.entities = [];
-        this.systems = [];
+        // World contiene la lógica ECS
+        this.world = new World();
+    }
 
-        this.grid = new SpatialHashGrid(300); // tamaño de celda configurable
+    // Delegación de métodos a World
+    get entities() {
+        return this.world.entities;
+    }
+
+    get systems() {
+        return this.world.systems;
+    }
+
+    get eventBus() {
+        return this.world.eventBus;
+    }
+
+    get queryManager() {
+        return this.world.queryManager;
+    }
+
+    get grid() {
+        return this.world.grid;
+    }
+
+    query(componentTypes) {
+        return this.world.query(componentTypes);
     }
 
     addEntity(entity) {
-        this.entities.push(entity);
-        return entity;
+        return this.world.addEntity(entity);
     }
 
-    addSystem(system) {
-        this.systems.push(system);
-        return system;
+    removeEntity(entity) {
+        return this.world.removeEntity(entity);
+    }
+
+    addSystem(system, priority = 0) {
+        return this.world.addSystem(system, priority);
+    }
+
+    setAllEntitiesActive(active) {
+        return this.world.setAllEntitiesActive(active);
     }
 
     update(delta) {
-        // =========================
-        // 1. REBUILD GRID
-        // =========================
-        this.grid.clear();
+        return this.world.update(delta);
+    }
 
-        for (const e of this.entities) {
-            if (!e.active) continue;
+    destroy() {
+        return this.world.destroy();
+    }
 
-            const t = e.get(Transform);
-            if (!t) continue;
+    // Hooks de ciclo de vida (para subclases)
+    async onEnter(runtime) {
+        // Sobrescribir en subclases
+    }
 
-            this.grid.insert(e, t.position.x, t.position.y);
-        }
-
-        // =========================
-        // 2. SYSTEMS UPDATE
-        // =========================
-        for (const system of this.systems) {
-            system.update(this.entities, delta);
-        }
+    onExit() {
+        // Sobrescribir en subclases
     }
 }

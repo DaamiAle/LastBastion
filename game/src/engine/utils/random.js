@@ -1,4 +1,5 @@
-﻿/**
+﻿// src/engine/utils/random.js
+/**
  * Genera un número entero aleatorio entre min y max (inclusive).
  * @param {number} min - El valor mínimo (inclusive).
  * @param {number} max - El valor máximo (inclusive).
