@@ -78,9 +78,7 @@ export class PixiRenderBackend extends IRenderBackend {
     setTexture(handle, texture) {
         if (!handle || !handle.isValid()) return;
         const { pixiSprite } = handle.internal;
-        if (texture) {
-            pixiSprite.texture = texture;
-        }
+        pixiSprite.texture = texture || PIXI.Texture.WHITE;
     }
 
     /**
@@ -114,6 +112,24 @@ export class PixiRenderBackend extends IRenderBackend {
             parent.removeChild(pixiSprite);
             parent.addChildAt(pixiSprite, Math.min(zIndex, parent.children.length));
         }
+    }
+
+    /**
+     * Establecer opacidad (de 0 a 1)
+     */
+    setAlpha(handle, alpha) {
+        if (!handle || !handle.isValid()) return;
+        const { pixiSprite } = handle.internal;
+        pixiSprite.alpha = alpha;
+    }
+
+    /**
+     * Establecer color de tinte (hexadecimal)
+     */
+    setTint(handle, color) {
+        if (!handle || !handle.isValid()) return;
+        const { pixiSprite } = handle.internal;
+        pixiSprite.tint = color;
     }
 
     /**

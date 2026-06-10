@@ -1,4 +1,4 @@
-﻿// src/engine/services/AudioService.js
+// src/engine/services/AudioService.js
 
 export class AudioService {
     constructor() {
@@ -73,6 +73,82 @@ export class AudioService {
         for (const sound of this.sounds.values()) {
             sound.pause();
             sound.currentTime = 0;
+        }
+    }
+
+    /**
+     * Reproducir un efecto de sonido sintetizado usando Web Audio API
+     * @param {string} type - 'shoot', 'hit', 'step', 'growl'
+     * @param {Object} options - Opciones de tono, duración y volumen
+     */
+    playSynth(type, { frequency = 220, duration = 0.1, volume = 0.1 } = {}) {
+        try {
+            if (!this.audioCtx) {
+                this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (this.audioCtx.state === 'suspended') {
+                this.audioCtx.resume();
+            }
+
+            const ctx = this.audioCtx;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            const now = ctx.currentTime;
+
+            if (type === 'shoot') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(frequency * 2, now);
+                osc.frequency.exponentialRampToValueAtTime(frequency * 0.2, now + duration);
+                
+                gain.gain.setValueAtTime(volume, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+                
+                osc.start(now);
+                osc.stop(now + duration);
+            } else if (type === 'hit') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(frequency, now);
+                osc.frequency.linearRampToValueAtTime(40, now + duration);
+                
+                gain.gain.setValueAtTime(volume, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + duration);
+                
+                osc.start(now);
+                osc.stop(now + duration);
+            } else if (type === 'step') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(frequency, now);
+                osc.frequency.linearRampToValueAtTime(60, now + duration);
+                
+                gain.gain.setValueAtTime(volume, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + duration);
+                
+                osc.start(now);
+                osc.stop(now + duration);
+            } else if (type === 'growl') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(frequency, now);
+                osc.frequency.linearRampToValueAtTime(frequency * 0.4, now + duration);
+                
+                gain.gain.setValueAtTime(volume, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + duration);
+                
+                osc.start(now);
+                osc.stop(now + duration);
+            } else {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(frequency, now);
+                gain.gain.setValueAtTime(volume, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + duration);
+                osc.start(now);
+                osc.stop(now + duration);
+            }
+        } catch (e) {
+            console.warn("Failed to play synthesized sound:", e);
         }
     }
 }

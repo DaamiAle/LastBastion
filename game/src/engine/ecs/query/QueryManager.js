@@ -23,6 +23,7 @@ export class QueryManager {
      */
     addComponentToIndex(entity, componentClass) {
         const name = componentClass.name;
+        console.log(`QueryManager: indexing entity ${entity.id} with component: "${name}"`);
         if (!this.indexByComponent.has(name)) {
             this.indexByComponent.set(name, new Set());
         }

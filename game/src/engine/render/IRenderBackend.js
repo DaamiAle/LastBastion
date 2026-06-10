@@ -92,6 +92,24 @@ export class IRenderBackend {
     }
 
     /**
+     * Establecer opacidad (de 0 a 1)
+     * @param {RenderHandle} handle
+     * @param {number} alpha
+     */
+    setAlpha(handle, alpha) {
+        throw new Error('IRenderBackend.setAlpha() must be implemented');
+    }
+
+    /**
+     * Establecer color de tinte (hexadecimal, e.g. 0xffffff)
+     * @param {RenderHandle} handle
+     * @param {number} color
+     */
+    setTint(handle, color) {
+        throw new Error('IRenderBackend.setTint() must be implemented');
+    }
+
+    /**
      * Agregar a stage
      * @param {RenderHandle} handle
      */

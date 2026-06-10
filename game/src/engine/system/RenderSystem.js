@@ -1,4 +1,4 @@
-﻿/**
+/**
  * RenderSystem
  * 
  * Sincroniza componentes ECS con el backend de renderizado.
@@ -31,9 +31,13 @@ export class RenderSystem {
         // Sino, usar entities array (backwards compatible)
         if (scene && !this.query) {
             this.query = scene.query([Transform, SpriteComponent]);
+            console.log("RenderSystem query initialized. Size:", this.query.entities.length);
         }
 
         const entitiesToRender = this.query ? this.query.entities : entities;
+        if (Math.random() < 0.005) { // Log occasionally (about once every 200 frames)
+            console.log("Renderable entities count:", entitiesToRender.length, "Total entities in world:", entities.length);
+        }
 
         for (const entity of entitiesToRender) {
             const transform = entity.get(Transform);
