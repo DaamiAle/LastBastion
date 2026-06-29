@@ -1,6 +1,6 @@
-import { Entity } from '../../engine/Entity.js';
+import { Entity } from '../../engine/core/Entity.js';
 import { Graphics, Sprite } from 'pixi.js';
-import { distanceSq } from '../../engine/Utils.js';
+import { distanceSq } from '../../engine/utils/Utils.js';
 
 export class TurretSlotEntity extends Entity {
     constructor(scene, x, y, index) {

@@ -1,6 +1,8 @@
 import { Graphics, Sprite } from 'pixi.js';
-import { Entity } from '../../engine/Entity.js';
-import { BulletEntity } from './BulletEntity.js';
+import { Entity } from '../../engine/core/Entity.js';
+import { assembleBullet } from '../assemblers/BulletAssembler.js';
+import { Health } from '../components/Health.js';
+import { Transform } from '../components/Transform.js';
 
 export class FortressEntity extends Entity {
     constructor(scene, x, y) {
@@ -86,23 +88,49 @@ export class FortressEntity extends Entity {
 
         this.fireTimer -= delta.deltaMS;
 
-        if (this.target && !this.target.isAlive) {
-            this.target = null;
-        }
         if (this.target) {
-            const dx = this.target.container.x - this.container.x;
-            const dy = this.target.container.y - this.container.y;
-            if (dx * dx + dy * dy > this.attackRange * this.attackRange) {
-                this.target = null;
+            if (typeof this.target === 'number') {
+                const targetHealth = this.scene.game.world.getComponent(this.target, Health);
+                const targetTransform = this.scene.game.world.getComponent(this.target, Transform);
+                if (!targetHealth || !targetHealth.isAlive || !targetTransform) {
+                    this.target = null;
+                } else {
+                    const dx = targetTransform.x - this.container.x;
+                    const dy = targetTransform.y - this.container.y;
+                    if (dx * dx + dy * dy > this.attackRange * this.attackRange) {
+                        this.target = null;
+                    }
+                }
+            } else {
+                if (!this.target.isAlive) {
+                    this.target = null;
+                } else {
+                    const dx = this.target.container.x - this.container.x;
+                    const dy = this.target.container.y - this.container.y;
+                    if (dx * dx + dy * dy > this.attackRange * this.attackRange) {
+                        this.target = null;
+                    }
+                }
             }
         }
+        
         if (!this.target) {
             this.target = this.scene.findNearestEnemy(this.container.x, this.container.y, this.attackRange);
         }
 
         if (this.target) {
-            const dx = this.target.container.x - this.container.x;
-            const dy = this.target.container.y - this.container.y;
+            let targetX, targetY;
+            if (typeof this.target === 'number') {
+                const targetTransform = this.scene.game.world.getComponent(this.target, Transform);
+                targetX = targetTransform.x;
+                targetY = targetTransform.y;
+            } else {
+                targetX = this.target.container.x;
+                targetY = this.target.container.y;
+            }
+
+            const dx = targetX - this.container.x;
+            const dy = targetY - this.container.y;
             const angle = Math.atan2(dy, dx);
             const len = Math.hypot(dx, dy) || 1;
 
@@ -116,7 +144,7 @@ export class FortressEntity extends Entity {
                     strength: noise.strength
                 });
 
-                this.scene.addEntity(new BulletEntity(
+                assembleBullet(
                     this.scene,
                     this.container.x + Math.cos(angle) * 46,
                     this.container.y + Math.sin(angle) * 46,
@@ -131,7 +159,7 @@ export class FortressEntity extends Entity {
                         texture: this.scene.game.assets.machinegunBulletTexture,
                         rotationOffset: Math.PI / 2
                     }
-                ));
+                );
             }
         }
 

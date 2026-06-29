@@ -1,110 +1,64 @@
-import { State } from '../../engine/State.js';
-import { clamp, distanceSq } from '../../engine/Utils.js';
+import { State } from '../../engine/core/State.js';
+import { distanceSq } from '../../engine/utils/Utils.js';
 import { AttackState } from './AttackState.js';
+import { ZombieAIComponent } from '../components/ZombieAIComponent.js';
+import { Transform } from '../components/Transform.js';
+import { BoidComponent } from '../components/BoidComponent.js';
 
 export class ChaseState extends State {
+    constructor(owner, world) {
+        super(owner);
+        this.world = world;
+    }
+
     update(delta) {
-        const zombie = this.owner;
-        const scene = zombie.scene;
-        const config = scene.game.config.zombies;
-        const stimulus = scene.findZombieStimulus(zombie);
+        const entityId = this.owner;
+        const ai = this.world.getComponent(entityId, ZombieAIComponent);
+        const transform = this.world.getComponent(entityId, Transform);
+        const boid = this.world.getComponent(entityId, BoidComponent);
+        
+        if (!ai || !transform || !ai.scene) return;
 
-        zombie.target = stimulus.entity ?? null;
-        zombie.targetPoint = stimulus.point ?? null;
-        zombie.lastHeardNoiseId = stimulus.noiseId ?? null;
+        const scene = ai.scene;
+        
+        const pseudoZombie = {
+            container: { x: transform.x, y: transform.y },
+            lastHeardNoiseId: ai.lastHeardNoiseId,
+            radius: ai.radius
+        };
 
-        if (zombie.target) {
-            const targetRadius = zombie.target.radius ?? 0;
-            const engageRange = zombie.attackRange + targetRadius;
-            const distSq = distanceSq(
-                zombie.container.x,
-                zombie.container.y,
-                zombie.target.container.x,
-                zombie.target.container.y
-            );
+        const stimulus = scene.findZombieStimulus(pseudoZombie);
+
+        ai.target = stimulus.entity ?? null;
+        ai.targetPoint = stimulus.point ?? null;
+        ai.lastHeardNoiseId = stimulus.noiseId ?? null;
+
+        if (ai.target) {
+            const targetRadius = ai.target.radius ?? 0;
+            const engageRange = ai.attackRange + targetRadius;
+            
+            const targetX = ai.target.container ? ai.target.container.x : ai.target.x;
+            const targetY = ai.target.container ? ai.target.container.y : ai.target.y;
+            
+            const distSq = distanceSq(transform.x, transform.y, targetX, targetY);
 
             if (distSq <= engageRange * engageRange) {
-                zombie.fsm.change(new AttackState(zombie));
+                ai.fsm.change(new AttackState(entityId, this.world));
                 return;
             }
         }
 
-        const targetX = zombie.target ? zombie.target.container.x : zombie.targetPoint.x;
-        const targetY = zombie.target ? zombie.target.container.y : zombie.targetPoint.y;
+        const targetX = ai.target ? (ai.target.container ? ai.target.container.x : ai.target.x) : ai.targetPoint.x;
+        const targetY = ai.target ? (ai.target.container ? ai.target.container.y : ai.target.y) : ai.targetPoint.y;
 
-        const zx = zombie.container.x;
-        const zy = zombie.container.y;
-        const dx = targetX - zx;
-        const dy = targetY - zy;
+        const dx = targetX - transform.x;
+        const dy = targetY - transform.y;
         const dist = Math.hypot(dx, dy) || 1;
 
-        let seekX = dx / dist;
-        let seekY = dy / dist;
-
-        if (stimulus.kind === 'wander') {
-            seekX *= 0.55;
-            seekY *= 0.55;
+        if (boid) {
+            boid.targetDirectionX = dx / dist;
+            boid.targetDirectionY = dy / dist;
+            boid.stimulusKind = stimulus.kind;
         }
-
-        let separationX = 0;
-        let separationY = 0;
-        let alignmentX = 0;
-        let alignmentY = 0;
-        let cohesionX = 0;
-        let cohesionY = 0;
-        let count = 0;
-
-        const neighbors = scene.grid.queryRadius(zx, zy, zombie.flockRadius);
-        for (const neighbor of neighbors) {
-            if (neighbor === zombie || neighbor.type !== 'zombie') continue;
-
-            const ndx = zx - neighbor.container.x;
-            const ndy = zy - neighbor.container.y;
-            const neighborDistSq = ndx * ndx + ndy * ndy;
-
-            if (neighborDistSq <= 0.0001 || neighborDistSq > zombie.flockRadius * zombie.flockRadius) continue;
-
-            separationX += ndx / neighborDistSq;
-            separationY += ndy / neighborDistSq;
-            alignmentX += neighbor.velocityX ?? 0;
-            alignmentY += neighbor.velocityY ?? 0;
-            cohesionX += neighbor.container.x;
-            cohesionY += neighbor.container.y;
-            count++;
-        }
-
-        let steerX = seekX * zombie.seekWeight;
-        let steerY = seekY * zombie.seekWeight;
-
-        if (count > 0) {
-            separationX /= count;
-            separationY /= count;
-            alignmentX /= count;
-            alignmentY /= count;
-            cohesionX = (cohesionX / count) - zx;
-            cohesionY = (cohesionY / count) - zy;
-
-            steerX += separationX * zombie.separationWeight;
-            steerY += separationY * zombie.separationWeight;
-            steerX += alignmentX * zombie.alignmentWeight;
-            steerY += alignmentY * zombie.alignmentWeight;
-            steerX += cohesionX * 0.01 * zombie.cohesionWeight;
-            steerY += cohesionY * 0.01 * zombie.cohesionWeight;
-        }
-
-        const steerLen = Math.hypot(steerX, steerY) || 1;
-        zombie.velocityX = steerX / steerLen;
-        zombie.velocityY = steerY / steerLen;
-
-        const speedScale = stimulus.kind === 'noise'
-            ? config.noiseSpeedMultiplier
-            : (stimulus.kind === 'wander' ? config.wanderSpeedMultiplier : 1);
-        const speed = zombie.speed * speedScale * (delta.deltaMS / 1000);
-
-        zombie.container.x += zombie.velocityX * speed;
-        zombie.container.y += zombie.velocityY * speed;
-        scene.keepEntityOutsideFortress(zombie, 6);
-        zombie.container.x = clamp(zombie.container.x, config.collisionPadding, scene.worldWidth - config.collisionPadding);
-        zombie.container.y = clamp(zombie.container.y, config.collisionPadding, scene.worldHeight - config.collisionPadding);
     }
 }

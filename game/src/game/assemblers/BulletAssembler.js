@@ -1,0 +1,47 @@
+import { Container, Graphics, Sprite } from 'pixi.js';
+import { Transform } from '../components/Transform.js';
+import { Velocity } from '../components/Velocity.js';
+import { SpriteComponent } from '../components/SpriteComponent.js';
+import { ProjectileComponent } from '../components/ProjectileComponent.js';
+
+export function assembleBullet(scene, x, y, dirX, dirY, options = {}) {
+    const world = scene.game.world;
+    const entityId = world.createEntity();
+
+    const speed = options.speed ?? 600;
+    const damage = options.damage ?? 25;
+    const size = options.size ?? 4;
+    const color = options.color ?? 0xffff00;
+    const texture = options.texture ?? null;
+    const rotationOffset = options.rotationOffset ?? 0;
+    const maxDistance = options.maxDistance ?? 512;
+    const splashRadius = options.splashRadius ?? 0;
+
+    world.addComponent(entityId, new Transform(x, y));
+    world.addComponent(entityId, new Velocity(dirX, dirY, speed));
+    world.addComponent(entityId, new ProjectileComponent(x, y, damage, maxDistance, splashRadius));
+
+    const container = new Container();
+    container.x = x;
+    container.y = y;
+    container.zIndex = 5;
+
+    let graphics;
+    if (texture) {
+        graphics = new Sprite(texture);
+        graphics.anchor.set(0.5);
+        graphics.scale.set(size > 4 ? 1.5 : 1);
+        graphics.rotation = Math.atan2(dirY, dirX) + rotationOffset;
+    } else {
+        graphics = new Graphics()
+            .circle(0, 0, size)
+            .fill(color);
+    }
+
+    container.addChild(graphics);
+    scene.container.addChild(container);
+
+    world.addComponent(entityId, new SpriteComponent(container));
+
+    return entityId;
+}
