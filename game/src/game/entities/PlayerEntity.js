@@ -149,6 +149,7 @@ export class PlayerEntity extends Entity {
                 speed: projectile.speed,
                 size: projectile.size,
                 texture: this.scene.game.assets.machinegunBulletTexture,
+                rotationOffset: Math.PI / 2,
                 maxDistance: this.attackRange + projectile.maxDistanceOffset
             }
         ));

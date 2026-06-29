@@ -47,8 +47,8 @@ export class ExplosiveEntity extends Entity {
         } else if (this.type === 'landmine') {
             for (const zombie of this.scene.getEnemies()) {
                 if (!zombie.isAlive) continue;
-                const dx = zombie.x - this.x;
-                const dy = zombie.y - this.y;
+                const dx = zombie.container.x - this.container.x;
+                const dy = zombie.container.y - this.container.y;
                 const distSq = dx * dx + dy * dy;
                 const triggerSq = this.config.triggerRadius * this.config.triggerRadius;
                 if (distSq <= triggerSq) {
@@ -67,8 +67,8 @@ export class ExplosiveEntity extends Entity {
         const radiusSq = this.config.radius * this.config.radius;
         for (const zombie of this.scene.getEnemies()) {
             if (!zombie.isAlive) continue;
-            const dx = zombie.x - this.x;
-            const dy = zombie.y - this.y;
+            const dx = zombie.container.x - this.container.x;
+            const dy = zombie.container.y - this.container.y;
             const distSq = dx * dx + dy * dy;
             if (distSq <= radiusSq) {
                 if (zombie.takeDamage) {
