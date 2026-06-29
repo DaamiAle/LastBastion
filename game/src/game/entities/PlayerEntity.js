@@ -1,194 +1,168 @@
-﻿import { Entity } from '../../engine/Entity.js';
-import { Graphics } from 'pixi.js';
-import { distanceSq } from '../../engine/Utils.js';
+import { AnimatedSprite, Graphics } from 'pixi.js';
+import { Entity } from '../../engine/Entity.js';
+import { clamp } from '../../engine/Utils.js';
 import { BulletEntity } from './BulletEntity.js';
-import { C4Entity } from './C4Entity.js';
 
 export class PlayerEntity extends Entity {
-    constructor(scene) {
+    constructor(scene, x, y) {
         super(scene);
 
-        this.type = "player";
-        this.baseColor = 0x333333;
-        this.width = 48;
-        this.health = 128;
-        this.maxHealth = 128;
-        this.baseSpeed = 0.25;
-        this.canTakeDamage = true;
+        const config = scene.game.config.player;
 
-        this.attackRange = 384;
-        this.fireCooldown = 75; // ms
+        this.type = 'player';
+        this.radius = config.radius;
+        this.health = config.maxHealth;
+        this.maxHealth = config.maxHealth;
+        this.baseSpeed = config.speed;
+        this.buildRange = config.buildRange;
+        this.attackRange = config.attackRange;
+        this.fireCooldown = config.fireCooldownMs;
         this.fireTimer = 0;
-        this.c4Cooldown = 5000; // ms
-        this.c4Timer = 0;
-
-        this.addTag("player");
-        this.addTag("movable");
+        this.isDead = false;
+        this.canTakeDamage = true;
+        this.x = x;
+        this.y = y;
     }
 
     enter() {
         super.enter();
 
-        this.graphics = new Graphics()
-            .rect(0, 0, this.width, this.width)
-            .fill(this.baseColor);
+        const walkFrames = this.scene.game.assets.playerWalkFrames;
+        const config = this.scene.game.config.player;
 
-        this.container.addChild(this.graphics);
+        if (walkFrames?.length) {
+            this.sprite = new AnimatedSprite(walkFrames);
+            this.sprite.anchor.set(0.5, 0.85);
+            this.sprite.scale.set(config.spriteScale);
+            this.sprite.animationSpeed = config.animationSpeed;
+            this.sprite.play();
+            this.container.addChild(this.sprite);
+        } else {
+            this.sprite = new Graphics()
+                .circle(0, 0, this.radius)
+                .fill(0xe2e8f0);
+            this.container.addChild(this.sprite);
+        }
 
-        // spawn inicial (después será la fortaleza)
-        this.container.x = 400;
-        this.container.y = 300;
+        this.shadow = new Graphics()
+            .ellipse(0, 12, 16, 8)
+            .fill({ color: 0x000000, alpha: 0.25 });
+        this.container.addChildAt(this.shadow, 0);
+
+        this.container.x = this.x;
+        this.container.y = this.y;
+        this.container.scale.set(1, 1);
+        this.container.zIndex = 4;
     }
 
     update(delta) {
-        const input = this.scene.game.input;
-
-        const speed = this.baseSpeed * delta.deltaMS; // 🔥 FIX unidad
-        this.c4Timer -= delta.deltaMS;
-
-        // 🔥 colocar C4
-        if (this.c4Timer <= 0) {
-            // Modo 1 → timer
-            if (input.isKeyDown("Digit1")) this.placeC4("timer");
-            
-            // Modo 2 → detonador
-            if (input.isKeyDown("Digit2")) this.placeC4("remote");
-            
-        }
-
-        // 🔥 Explosion remota
-        if (input.isKeyDown("KeyE")) {
-            const c4s = this.scene.entities.filter(e => e.type == "c4");
-
-            for (const c4 of c4s) {
-                if (c4.mode == "remote") {
-                    c4.explode();
-                }
+        if (this.isDead) {
+            this.health += (this.maxHealth / 30000) * delta.deltaMS;
+            if (this.health >= this.maxHealth) {
+                this.health = this.maxHealth;
+                this.isDead = false;
+                this.container.alpha = 1;
             }
         }
+
+        const input = this.scene.game.input;
+        const dt = delta.deltaMS / 1000;
+        const config = this.scene.game.config.player;
+        this.fireTimer -= delta.deltaMS;
 
         let dx = 0;
         let dy = 0;
 
-        if (input.isKeyDown("KeyW")) dy -= 1;
-        if (input.isKeyDown("KeyS")) dy += 1;
-        if (input.isKeyDown("KeyA")) dx -= 1;
-        if (input.isKeyDown("KeyD")) dx += 1;
+        if (input.isKeyDown('KeyW')) dy -= 1;
+        if (input.isKeyDown('KeyS')) dy += 1;
+        if (input.isKeyDown('KeyA')) dx -= 1;
+        if (input.isKeyDown('KeyD')) dx += 1;
 
-        if (dx !== 0 && dy !== 0) {
-            const len = Math.sqrt(dx * dx + dy * dy);
+        const moving = dx !== 0 || dy !== 0;
+        if (moving) {
+            const len = Math.hypot(dx, dy) || 1;
             dx /= len;
             dy /= len;
+
+            this.container.x += dx * this.baseSpeed * dt;
+            this.container.y += dy * this.baseSpeed * dt;
+
+            this.container.x = clamp(this.container.x, config.collisionPadding, this.scene.worldWidth - config.collisionPadding);
+            this.container.y = clamp(this.container.y, config.collisionPadding, this.scene.worldHeight - config.collisionPadding);
         }
 
-        this.container.x += dx * speed;
-        this.container.y += dy * speed;
-
-        this.shoot(delta);
-      
-        this.applyFlash(false);
-    }
-
-    regenerate(delta) {
-        if (!this.canRegen) return;
-
-        if (this.health < this.maxHealth) {
-            this.health += 10 * (delta.deltaTime / 1000); // 10 HP por segundo
-            if (this.health > this.maxHealth) this.health = this.maxHealth;
+        const aimPoint = this.scene.getCursorWorldPoint();
+        const shouldShoot = input.mouse.leftDown
+            && !this.scene.getSlotAtWorldPoint(aimPoint.x, aimPoint.y)
+            && !this.scene.isPointerOnMetaUI()
+            && !this.isDead;
+        if (shouldShoot) {
+            this.shootAt(aimPoint);
         }
 
-    }
+        if (this.sprite instanceof AnimatedSprite) {
+            this.sprite.animationSpeed = moving ? config.animationSpeed : 0;
 
-    shoot(delta) {
-        this.fireTimer -= delta.deltaMS;
+            if (!moving) {
+                this.sprite.gotoAndStop(0);
+            } else if (!this.sprite.playing) {
+                this.sprite.play();
+            }
 
-        const zombies = this.scene.entities.filter(e => e.type === "zombie");
-        if (zombies.length === 0) return;
-
-        // 🔥 buscar más cercano
-        let closest = null;
-        let minDist = Infinity;
-
-        for (const z of zombies) {
-            const d = distanceSq(
-                this.container.x, this.container.y,
-                z.container.x, z.container.y
-            );
-
-            if (d < minDist) {
-                minDist = d;
-                closest = z;
+            const aimDx = aimPoint.x - this.container.x;
+            const aimDy = aimPoint.y - this.container.y;
+            if (aimDx !== 0 || aimDy !== 0) {
+                this.sprite.rotation = Math.atan2(aimDy, aimDx) + config.aimRotationOffset;
             }
         }
-
-        if (!closest) return;
-
-        const attackRangeSq = this.attackRange * this.attackRange;
-
-        if (minDist > attackRangeSq) {
-            return; // 🔴 fuera de rango → no dispara
-        }
-
-        // 🔥 disparar
-        if (this.fireTimer <= 0) {
-            this.fireTimer = this.fireCooldown;
-
-            const dx = closest.container.x - this.container.x;
-            const dy = closest.container.y - this.container.y;
-
-            const len = Math.sqrt(dx * dx + dy * dy);
-            if (len === 0) return;
-
-            const dirX = dx / len;
-            const dirY = dy / len;
-
-            this.scene.addEntity(
-                new BulletEntity(
-                    this.scene,
-                    this.container.x,
-                    this.container.y,
-                    dirX,
-                    dirY
-                )
-            );
-        }
     }
 
-    placeC4(mode) {
-        this.c4Timer = this.c4Cooldown;
+    shootAt(targetPoint) {
+        if (this.fireTimer > 0) return;
 
-        const c4 = new C4Entity(
+        const config = this.scene.game.config.player;
+        const projectile = config.projectile;
+        const noise = config.noise;
+        const dx = targetPoint.x - this.container.x;
+        const dy = targetPoint.y - this.container.y;
+        const len = Math.hypot(dx, dy);
+
+        if (len < 1) return;
+        if (len > this.attackRange) return;
+
+        this.fireTimer = this.fireCooldown;
+        this.scene.emitNoise(this.container.x, this.container.y, {
+            radius: noise.radius,
+            ttl: noise.ttlMs,
+            strength: noise.strength
+        });
+
+        this.scene.addEntity(new BulletEntity(
             this.scene,
-            this.container.x,
-            this.container.y,
-            mode
-        );
-
-        this.scene.addEntity(c4);
+            this.container.x + (dx / len) * 24,
+            this.container.y + (dy / len) * 24,
+            dx / len,
+            dy / len,
+            {
+                damage: projectile.damage,
+                color: projectile.color,
+                speed: projectile.speed,
+                size: projectile.size,
+                texture: this.scene.game.assets.machinegunBulletTexture,
+                maxDistance: this.attackRange + projectile.maxDistanceOffset
+            }
+        ));
     }
 
     takeDamage(amount) {
+        if (this.isDead) return;
+        
         this.health -= amount;
-        
-        //this.setColor(0xff0000);
-        this.applyFlash(true);
-        if (this.health < 0) this.health = 0;
-        
 
-
-    }
-
-    applyFlash(active) {
-        if (active) {
-            this.graphics.alpha = 0.25; // ahora
-        } else {
-            this.graphics.alpha = 1;
+        if (this.health <= 0) {
+            this.health = 0;
+            this.isDead = true;
+            this.container.alpha = 0.4;
         }
-    }
-
-    setColor(color) {
-        this.graphics.clear()
-            .rect(0, 0, this.width, this.width)
-            .fill(color);
     }
 }
