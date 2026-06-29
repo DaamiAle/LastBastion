@@ -32,7 +32,7 @@ export class Game {
 
     async loadAssets() {
         const walkTexture = await Assets.load('/assets/Walk_player.png');
-        const walkMetaText = await fetch('/assets/Walk_player.png.meta').then((response) => response.text());
+        const walkMetaText = await fetch('/assets/Walk_player_meta.txt').then((response) => response.text());
         const walkMeta = new SpriteSheetMeta(walkMetaText);
         const [
             zombieTexture,
