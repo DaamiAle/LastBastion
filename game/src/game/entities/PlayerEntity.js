@@ -1,7 +1,7 @@
 import { AnimatedSprite, Graphics } from 'pixi.js';
-import { Entity } from '../../engine/Entity.js';
-import { clamp } from '../../engine/Utils.js';
-import { BulletEntity } from './BulletEntity.js';
+import { Entity } from '../../engine/core/Entity.js';
+import { clamp } from '../../engine/utils/Utils.js';
+import { assembleBullet } from '../assemblers/BulletAssembler.js';
 
 export class PlayerEntity extends Entity {
     constructor(scene, x, y) {
@@ -137,22 +137,22 @@ export class PlayerEntity extends Entity {
             strength: noise.strength
         });
 
-        this.scene.addEntity(new BulletEntity(
+        assembleBullet(
             this.scene,
-            this.container.x + (dx / len) * 24,
-            this.container.y + (dy / len) * 24,
+            this.container.x + (dx / len) * 20,
+            this.container.y + (dy / len) * 20,
             dx / len,
             dy / len,
             {
                 damage: projectile.damage,
-                color: projectile.color,
                 speed: projectile.speed,
+                color: projectile.color,
                 size: projectile.size,
                 texture: this.scene.game.assets.machinegunBulletTexture,
                 rotationOffset: Math.PI / 2,
                 maxDistance: this.attackRange + projectile.maxDistanceOffset
             }
-        ));
+        );
     }
 
     takeDamage(amount) {

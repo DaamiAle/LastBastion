@@ -1,5 +1,5 @@
 import { Container } from 'pixi.js';
-import { clamp, lerp } from './Utils.js';
+import { clamp, lerp } from '../utils/Utils.js';
 
 export class Scene {
     constructor(game) {

@@ -1,5 +1,5 @@
 import { Sprite } from 'pixi.js';
-import { Entity } from '../../engine/Entity.js';
+import { Entity } from '../../engine/core/Entity.js';
 
 export class ExplosionEffectEntity extends Entity {
     constructor(scene, x, y, radius) {

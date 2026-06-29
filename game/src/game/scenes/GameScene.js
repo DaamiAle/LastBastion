@@ -1,13 +1,17 @@
 import { Graphics } from 'pixi.js';
-import { Scene } from '../../engine/Scene.js';
-import { distanceSq, randomFloat } from '../../engine/Utils.js';
-import { SpatialHashGrid } from '../../engine/SpatialHashGrid.js';
+import { Scene } from '../../engine/core/Scene.js';
+import { distanceSq, randomFloat } from '../../engine/utils/Utils.js';
+import { SpatialHashGrid } from '../../engine/utils/SpatialHashGrid.js';
 import { HUD } from '../../ui/HUD.js';
 import { FortressEntity } from '../entities/FortressEntity.js';
 import { PlayerEntity } from '../entities/PlayerEntity.js';
 import { TurretSlotEntity } from '../entities/TurretSlotEntity.js';
-import { TurretEntity } from '../entities/TurretEntity.js';
-import { ZombieEntity } from '../entities/ZombieEntity.js';
+import { assembleTurret, upgradeTurret, getTurretUpgradeCost, getTurretSellValue, getTurretStatsSummary } from '../assemblers/TurretAssembler.js';
+import { TurretAIComponent } from '../components/TurretAIComponent.js';
+import { assembleZombie } from '../assemblers/ZombieAssembler.js';
+import { ZombieAIComponent } from '../components/ZombieAIComponent.js';
+import { Transform } from '../components/Transform.js';
+import { Health } from '../components/Health.js';
 import { ExplosiveEntity } from '../entities/ExplosiveEntity.js';
 import { ExplosionEffectEntity } from '../entities/ExplosionEffectEntity.js';
 import { MainMenuScene } from './MainMenuScene.js';
@@ -159,7 +163,7 @@ export class GameScene extends Scene {
     }
 
     selectTurret(type) {
-        const config = TurretEntity.getConfig(type, this.game.config);
+        const config = this.game.config.turrets.types[type];
         this.selectedTurretType = type;
         this.pushMessage(`${config.label} seleccionada. Costo: ${config.cost}`);
     }
@@ -177,7 +181,7 @@ export class GameScene extends Scene {
             return;
         }
 
-        const selectedConfig = TurretEntity.getConfig(this.selectedTurretType, this.game.config);
+        const selectedConfig = this.game.config.turrets.types[this.selectedTurretType];
 
         if (!slot.turret) {
             if (this.resources < selectedConfig.cost) {
@@ -186,9 +190,11 @@ export class GameScene extends Scene {
             }
 
             this.resources -= selectedConfig.cost;
-            const turret = new TurretEntity(this, slot, this.selectedTurretType);
-            slot.turret = turret;
-            this.addEntity(turret);
+            slot.turret = assembleTurret(this, slot, this.selectedTurretType);
+            
+            // Re-insert slot into grid? Turrets are static so maybe not needed, but for nearest enemy it is.
+            this.grid.insert(slot.turret, slot.container.x, slot.container.y);
+
             slot.redraw(true);
             this.pushMessage(`${selectedConfig.label} construida en slot ${slot.index + 1}.`);
             this.persistProgress();
@@ -201,9 +207,11 @@ export class GameScene extends Scene {
     sellTurret(slot) {
         if (!slot?.turret) return;
 
-        const refund = slot.turret.getSellValue();
+        const refund = getTurretSellValue(this.game.world, this.game.config, slot.turret);
         this.resources += refund;
-        slot.turret.isAlive = false;
+        
+        this.game.world.destroyEntity(slot.turret);
+        
         slot.turret = null;
         slot.redraw(false);
         this.pushMessage(`Torreta vendida por $${refund}.`);
@@ -229,16 +237,18 @@ export class GameScene extends Scene {
     upgradeSlotTurret(slot, stat) {
         if (!slot?.turret) return;
 
-        const cost = slot.turret.getUpgradeCost(stat);
+        const cost = getTurretUpgradeCost(this.game.world, this.game.config, slot.turret, stat);
         if (this.resources < cost) {
             this.pushMessage('No alcanza para mejorar esa torreta.');
             return;
         }
 
         this.resources -= cost;
-        slot.turret.upgrade(stat);
+        upgradeTurret(this.game.world, this.game.config, slot.turret, stat);
         slot.redraw(true);
-        this.pushMessage(`${slot.turret.label} mejorada en ${this.getUpgradeStatLabel(stat)} a nivel ${slot.turret.level}.`);
+        
+        const ai = this.game.world.getComponent(slot.turret, TurretAIComponent);
+        this.pushMessage(`${ai.label} mejorada en ${this.getUpgradeStatLabel(stat)} a nivel ${ai.level}.`);
         this.persistProgress();
     }
 
@@ -413,7 +423,7 @@ export class GameScene extends Scene {
             return false;
         }
 
-        this.addEntity(new ZombieEntity(this, ...this.getSpawnPoint('wave')));
+        assembleZombie(this, ...this.getSpawnPoint('wave'));
         return true;
     }
 
@@ -427,6 +437,12 @@ export class GameScene extends Scene {
                 this.grid.insert(entity, entity.container.x, entity.container.y);
             }
         }
+
+        const ecsZombies = this.game.world.getEntitiesWith(ZombieAIComponent, Transform);
+        for (const entityId of ecsZombies) {
+            const transform = this.game.world.getComponent(entityId, Transform);
+            this.grid.insert(entityId, transform.x, transform.y);
+        }
     }
 
     findNearestEnemy(x, y, range = Infinity) {
@@ -435,12 +451,26 @@ export class GameScene extends Scene {
         const pool = Number.isFinite(range) ? this.grid.queryRadius(x, y, range) : this.getEnemies();
 
         for (const entity of pool) {
-            if (entity.type !== 'zombie' || !entity.isAlive) continue;
+            if (typeof entity === 'number') {
+                const ai = this.game.world.getComponent(entity, ZombieAIComponent);
+                const health = this.game.world.getComponent(entity, Health);
+                const transform = this.game.world.getComponent(entity, Transform);
+                
+                if (!ai || !health || !health.isAlive || !transform) continue;
 
-            const distSq = distanceSq(x, y, entity.container.x, entity.container.y);
-            if (distSq < bestDistSq) {
-                bestDistSq = distSq;
-                closest = entity;
+                const distSq = distanceSq(x, y, transform.x, transform.y);
+                if (distSq < bestDistSq) {
+                    bestDistSq = distSq;
+                    closest = entity;
+                }
+            } else {
+                if (entity.type !== 'zombie' || !entity.isAlive) continue;
+
+                const distSq = distanceSq(x, y, entity.container.x, entity.container.y);
+                if (distSq < bestDistSq) {
+                    bestDistSq = distSq;
+                    closest = entity;
+                }
             }
         }
 
@@ -453,14 +483,29 @@ export class GameScene extends Scene {
         if (this.fortress?.isAlive) candidates.push(this.fortress);
         if (this.player && !this.player.isDead) candidates.push(this.player);
         for (const slot of this.slots) {
-            if (slot.turret?.isAlive) candidates.push(slot.turret);
+            if (slot.turret !== null && slot.turret !== undefined) {
+                candidates.push(slot.turret);
+            }
         }
 
         let best = null;
         let bestDistSq = radius * radius;
 
         for (const candidate of candidates) {
-            const distSq = distanceSq(x, y, candidate.container.x, candidate.container.y);
+            let cx, cy;
+            if (typeof candidate === 'number') {
+                const health = this.game.world.getComponent(candidate, Health);
+                const transform = this.game.world.getComponent(candidate, Transform);
+                if (!health || !health.isAlive || !transform) continue;
+                cx = transform.x;
+                cy = transform.y;
+            } else {
+                if (!candidate.isAlive) continue;
+                cx = candidate.container.x;
+                cy = candidate.container.y;
+            }
+
+            const distSq = distanceSq(x, y, cx, cy);
             if (distSq < bestDistSq) {
                 bestDistSq = distSq;
                 best = candidate;
@@ -586,7 +631,12 @@ export class GameScene extends Scene {
     }
 
     getEnemies() {
-        return this.entities.filter((entity) => entity.type === 'zombie' && entity.isAlive);
+        const oldZombies = this.entities.filter((entity) => entity.type === 'zombie' && entity.isAlive);
+        const ecsZombies = Array.from(this.game.world.getEntitiesWith(ZombieAIComponent, Health)).filter(entityId => {
+            const health = this.game.world.getComponent(entityId, Health);
+            return health && health.isAlive;
+        });
+        return [...oldZombies, ...ecsZombies];
     }
 
     onZombieKilled() {
@@ -604,11 +654,11 @@ export class GameScene extends Scene {
         }
 
         const turretMeta = {
-            sniper: TurretEntity.getConfig('sniper', this.game.config),
-            machinegun: TurretEntity.getConfig('machinegun', this.game.config),
-            cannon: TurretEntity.getConfig('cannon', this.game.config)
+            sniper: this.game.config.turrets.types['sniper'],
+            machinegun: this.game.config.turrets.types['machinegun'],
+            cannon: this.game.config.turrets.types['cannon']
         };
-        const selectedTurret = TurretEntity.getConfig(this.selectedTurretType, this.game.config);
+        const selectedTurret = this.game.config.turrets.types[this.selectedTurretType];
         const contextMenu = this.buildContextMenu();
 
         let waveProgress = 0;
@@ -671,7 +721,7 @@ export class GameScene extends Scene {
                 title: `Slot ${slot.index + 1} vacio`,
                 anchor,
                 actions: turretTypes.map((type) => {
-                    const config = TurretEntity.getConfig(type, this.game.config);
+                    const config = this.game.config.turrets.types[type];
                     return {
                         kind: 'build',
                         turretType: type,
@@ -742,7 +792,7 @@ export class GameScene extends Scene {
             kind,
             stat,
             iconKey: `upgrade:${stat}`,
-            label: `${this.getUpgradeStatLabel(stat)} $${target.getUpgradeCost(stat)}`,
+            label: `${this.getUpgradeStatLabel(stat)} $${typeof target === 'number' ? getTurretUpgradeCost(this.game.world, this.game.config, target, stat) : target.getUpgradeCost(stat)}`,
             ...extra
         }));
     }
@@ -758,12 +808,16 @@ export class GameScene extends Scene {
         const turretData = this.slots.map((slot) => {
             if (!slot.turret) return null;
 
+            const ai = this.game.world.getComponent(slot.turret, TurretAIComponent);
+            const health = this.game.world.getComponent(slot.turret, Health);
+            if (!ai || !health) return null;
+
             return {
-                type: slot.turret.turretType,
-                level: slot.turret.level,
-                health: slot.turret.health,
-                invested: slot.turret.invested,
-                upgradeLevels: { ...slot.turret.upgradeLevels }
+                type: ai.turretType,
+                level: ai.level,
+                health: health.hp,
+                invested: ai.invested,
+                upgradeLevels: { ...ai.upgradeLevels }
             };
         });
 
@@ -817,25 +871,31 @@ export class GameScene extends Scene {
                 const slot = this.slots[index];
                 if (!slot) return;
 
-                const turret = new TurretEntity(this, slot, savedTurret.type);
-                slot.turret = turret;
-                this.addEntity(turret);
+                slot.turret = assembleTurret(this, slot, savedTurret.type);
 
                 if (savedTurret.upgradeLevels) {
                     for (const stat of ['damage', 'range', 'cadence']) {
                         const times = savedTurret.upgradeLevels[stat] ?? 0;
                         for (let i = 0; i < times; i++) {
-                            turret.upgrade(stat);
+                            upgradeTurret(this.game.world, this.game.config, slot.turret, stat);
                         }
                     }
                 } else {
-                    while (turret.level < (savedTurret.level ?? 1)) {
-                        turret.upgrade('damage');
+                    const ai = this.game.world.getComponent(slot.turret, TurretAIComponent);
+                    while (ai.level < (savedTurret.level ?? 1)) {
+                        upgradeTurret(this.game.world, this.game.config, slot.turret, 'damage');
                     }
                 }
+                
+                if (savedTurret.health !== undefined) {
+                    const health = this.game.world.getComponent(slot.turret, Health);
+                    if (health) health.hp = savedTurret.health;
+                }
 
-                turret.health = Math.min(turret.maxHealth, savedTurret.health ?? turret.health);
-                turret.invested = savedTurret.invested ?? turret.invested;
+                if (savedTurret.invested !== undefined) {
+                    const ai = this.game.world.getComponent(slot.turret, TurretAIComponent);
+                    if (ai) ai.invested = savedTurret.invested;
+                }
             });
         }
 

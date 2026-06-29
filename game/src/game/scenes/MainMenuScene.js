@@ -1,5 +1,5 @@
 import { Container } from 'pixi.js';
-import { Scene } from '../../engine/Scene.js';
+import { Scene } from '../../engine/core/Scene.js';
 import { Button } from '../../ui/Button.js';
 import { GameScene } from './GameScene.js';
 
