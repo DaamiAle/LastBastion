@@ -1,68 +1,176 @@
-﻿import { Entity } from '../../engine/Entity.js';
-import { Graphics } from 'pixi.js';
+import { Graphics, Sprite } from 'pixi.js';
+import { Entity } from '../../engine/Entity.js';
+import { BulletEntity } from './BulletEntity.js';
 
 export class FortressEntity extends Entity {
-    constructor(scene) {
+    constructor(scene, x, y) {
         super(scene);
 
-        this.type = "fortress";
+        const config = scene.game.config.fortress;
 
-        this.maxHp = 1000;
+        this.type = 'fortress';
+        this.radius = config.radius;
+        this.maxHp = config.maxHealth;
         this.hp = this.maxHp;
-        this.regenRate = 5; // HP por segundo
-        this.fireRate = 600; // ms (M16 aprox)
+        this.regenRate = config.regenRate;
+        this.attackRange = config.attackRange;
+        this.fireRate = config.fireRateMs;
         this.fireTimer = 0;
-
+        this.damage = config.damage;
+        this.level = 1;
+        this.upgradeLevels = {
+            damage: 0,
+            range: 0,
+            cadence: 0
+        };
+        this.upgradeCost = config.upgradeBaseCost;
         this.canTakeDamage = true;
+        this.x = x;
+        this.y = y;
 
-
-        this.addTag("target");
-        this.addTag("static");
+        this.addTag('target');
+        this.addTag('static');
     }
 
     enter() {
         super.enter();
 
-        this.graphics = new Graphics()
-            .rect(0, 0, 128, 128)
-            .fill(0x888888);
+        this.base = new Sprite(this.scene.game.assets.bastionBaseTexture);
+        this.base.anchor.set(0.5);
+        this.base.width = 432;
+        this.base.height = 432;
 
-        this.container.addChild(this.graphics);
+        const spriteSet = this.scene.game.assets.turretSprites.machinegun;
 
-        // 🔥 POSICIÓN CENTRAL (importante)
-        const width = this.scene.game.app.renderer.width;
-        const height = this.scene.game.app.renderer.height;
+        this.turretBase = new Sprite(spriteSet.base[1]);
+        this.turretBase.anchor.set(0.5);
+        this.turretBase.width = 40;
+        this.turretBase.height = 40;
+        this.turretBase.scale.set(this.scene.game.config.fortress.turretVisualScale);
 
-        this.container.x = width / 2;
-        this.container.y = height / 2;
+        this.turret = new Sprite(spriteSet.head[1]);
+        this.turret.anchor.set(0.5);
+        this.turret.width = 40;
+        this.turret.height = 40;
+        this.turret.rotation = Math.PI * 0.5;
+        this.turret.scale.set(this.scene.game.config.fortress.turretVisualScale);
 
-        // 🔥 centrar visualmente
-        this.container.pivot.set(60, 60);
+        this.container.addChild(this.base);
+        this.container.addChild(this.turretBase);
+        this.container.addChild(this.turret);
+
+        this.container.x = this.x;
+        this.container.y = this.y;
+        this.container.scale.set(this.scene.game.config.fortress.scale);
+        this.container.zIndex = 2;
     }
 
     takeDamage(amount) {
         this.hp -= amount;
         this.applyFlash(true);
-        if (this.hp < 0) this.hp = 0;
 
-        //console.log("Fortress HP:", this.hp);
+        if (this.hp < 0) {
+            this.hp = 0;
+        }
     }
+
     update(delta) {
+        const dt = delta.deltaMS / 1000;
+        const config = this.scene.game.config.fortress;
+        const projectile = config.projectile;
+        const noise = config.noise;
+
+        if (this.hp > 0) {
+            this.hp = Math.min(this.maxHp, this.hp + this.regenRate * dt);
+        }
+
+        this.fireTimer -= delta.deltaMS;
+
+        if (this.target && !this.target.isAlive) {
+            this.target = null;
+        }
+        if (this.target) {
+            const dx = this.target.container.x - this.container.x;
+            const dy = this.target.container.y - this.container.y;
+            if (dx * dx + dy * dy > this.attackRange * this.attackRange) {
+                this.target = null;
+            }
+        }
+        if (!this.target) {
+            this.target = this.scene.findNearestEnemy(this.container.x, this.container.y, this.attackRange);
+        }
+
+        if (this.target) {
+            const dx = this.target.container.x - this.container.x;
+            const dy = this.target.container.y - this.container.y;
+            const angle = Math.atan2(dy, dx);
+            const len = Math.hypot(dx, dy) || 1;
+
+            this.turret.rotation = angle + Math.PI * 0.5;
+
+            if (this.fireTimer <= 0) {
+                this.fireTimer = this.fireRate;
+                this.scene.emitNoise(this.container.x, this.container.y, {
+                    radius: noise.radius,
+                    ttl: noise.ttlMs,
+                    strength: noise.strength
+                });
+
+                this.scene.addEntity(new BulletEntity(
+                    this.scene,
+                    this.container.x + Math.cos(angle) * 46,
+                    this.container.y + Math.sin(angle) * 46,
+                    dx / len,
+                    dy / len,
+                    {
+                        damage: this.damage,
+                        color: projectile.color,
+                        speed: projectile.speed,
+                        size: projectile.size,
+                        maxDistance: this.attackRange + projectile.maxDistanceOffset,
+                        texture: this.scene.game.assets.machinegunBulletTexture,
+                        rotationOffset: Math.PI / 2
+                    }
+                ));
+            }
+        }
+
         this.applyFlash(false);
     }
 
-    getPosition() {
-        return {
-            x: this.container.x,
-            y: this.container.y
-        };
+    applyFlash(active) {
+        this.base.alpha = active ? 0.45 : 1;
     }
 
-    applyFlash(active) {
-        if (active) {
-            this.graphics.alpha = 0.25// ahora
-        } else {
-            this.graphics.alpha = 1;
-        }
+    upgrade(stat) {
+        this.upgradeLevels[stat] += 1;
+        this.level = 1 + this.getTotalUpgradeCount();
+        this.applyUpgradeStats();
+    }
+
+    applyUpgradeStats() {
+        const config = this.scene.game.config.fortress;
+
+        this.damage = Math.round(config.damage * (1 + this.upgradeLevels.damage * config.damageScalePerLevel));
+        this.attackRange = Math.round(config.attackRange * (1 + this.upgradeLevels.range * config.rangeScalePerLevel));
+        this.fireRate = Math.max(
+            config.minFireRateMs,
+            config.fireRateMs * (1 - this.upgradeLevels.cadence * config.cadenceScalePerLevel)
+        );
+    }
+
+    getUpgradeCost(stat) {
+        const config = this.scene.game.config.fortress;
+        const total = this.getTotalUpgradeCount();
+        const branchLevel = this.upgradeLevels[stat];
+        return Math.round(config.upgradeBaseCost + (total + branchLevel + 1) * config.upgradeCostPerLevel);
+    }
+
+    getTotalUpgradeCount() {
+        return this.upgradeLevels.damage + this.upgradeLevels.range + this.upgradeLevels.cadence;
+    }
+
+    getStatsSummary() {
+        return `Dmg ${this.damage} | Rng ${this.attackRange} | Cad ${Math.round(this.fireRate)}ms`;
     }
 }

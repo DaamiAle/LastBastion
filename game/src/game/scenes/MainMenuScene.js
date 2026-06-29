@@ -1,5 +1,5 @@
-import { Scene } from '../../engine/Scene.js';
 import { Container } from 'pixi.js';
+import { Scene } from '../../engine/Scene.js';
 import { Button } from '../../ui/Button.js';
 import { GameScene } from './GameScene.js';
 
@@ -11,18 +11,18 @@ export class MainMenuScene extends Scene {
         this.container.addChild(this.ui);
 
         const centerX = this.game.app.renderer.width / 2;
+        const quickMode = this.game.config.presets.quickMode;
 
-        this.addButton("Nuevo Juego", centerX, 200, () => {
-            console.log("Nuevo Juego");
+        this.addButton('Nuevo Juego', centerX, 200, () => {
             this.game.sceneManager.change(new GameScene(this.game));
         });
 
-        this.addButton("Cargar Juego", centerX, 300, () => {
-            console.log("Cargar Juego");
+        this.addButton('Continuar', centerX, 300, () => {
+            this.game.sceneManager.change(new GameScene(this.game, { loadSave: true }));
         });
 
-        this.addButton("Opciones", centerX, 400, () => {
-            console.log("Opciones");
+        this.addButton('Modo Rapido', centerX, 400, () => {
+            this.game.sceneManager.change(new GameScene(this.game, quickMode));
         });
     }
 

@@ -1,45 +1,44 @@
-﻿import { State } from '../../engine/State.js';
+import { State } from '../../engine/State.js';
 import { distanceSq } from '../../engine/Utils.js';
 import { ChaseState } from './ChaseState.js';
 
 export class AttackState extends State {
     enter() {
-        // el ataque se ejecuta inmediatamente al entrar, luego el cooldown controla la cadencia
         this.cooldown = 0;
     }
 
     update(delta) {
         const zombie = this.owner;
+        const config = zombie.scene.game.config.zombies;
+        const target = zombie.target;
 
-        if (!zombie.target) {
+        if (!target || !target.isAlive) {
             zombie.fsm.change(new ChaseState(zombie));
             return;
         }
 
-        const zx = zombie.container.x;
-        const zy = zombie.container.y;
+        const distSq = distanceSq(
+            zombie.container.x,
+            zombie.container.y,
+            target.container.x,
+            target.container.y
+        );
+        const targetRadius = target.radius ?? 0;
+        const engageRange = zombie.attackRange + targetRadius;
 
-        const tx = zombie.target.container.x;
-        const ty = zombie.target.container.y;
-
-        const distSq = distanceSq(zx, zy, tx, ty);
-        const attackRangeSq = zombie.attackRange * zombie.attackRange;
-
-        // 🔥 si se aleja → volver a chase
-        if (distSq > attackRangeSq) {
+        if (distSq > engageRange * engageRange * config.attackExitRangeMultiplier) {
             zombie.fsm.change(new ChaseState(zombie));
             return;
         }
 
-        // 🔥 cooldown de ataque
+        zombie.scene.keepEntityOutsideFortress(zombie, 6);
+
         this.cooldown -= delta.deltaMS;
-
         if (this.cooldown <= 0) {
             this.cooldown = zombie.attackCooldown;
 
-            // aplicar daño
-            if (zombie.target.canTakeDamage) {
-                zombie.target.takeDamage(zombie.damage);
+            if (target.canTakeDamage) {
+                target.takeDamage(zombie.damage);
             }
         }
     }
