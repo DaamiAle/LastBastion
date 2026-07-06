@@ -1,6 +1,10 @@
-﻿import { Entity } from '../../engine/core/Entity.js';
+import { Entity } from '../../engine/core/Entity.js';
 import { Graphics } from 'pixi.js';
 import { distanceSq } from '../../engine/utils/Utils.js';
+import { Transform } from '../components/Transform.js';
+import { ZombieAIComponent } from '../components/ZombieAIComponent.js';
+import { Health } from '../components/Health.js';
+import { DamageQueueComponent } from '../components/DamageQueueComponent.js';
 
 export class C4Entity extends Entity {
     constructor(scene, x, y, mode) {
@@ -45,16 +49,26 @@ export class C4Entity extends Entity {
     explode() {
         const radiusSq = this.radius * this.radius;
         this.renderExplode();
-        const zombies = this.scene.entities.filter(e => e.type == "zombie");
+        
+        // Use ECS to find zombies
+        const world = this.scene.game.world;
+        const zombies = world.getEntitiesWith(Transform, ZombieAIComponent, Health);
 
-        for (const z of zombies) {
+        for (const zId of zombies) {
+            const zTransform = world.getComponent(zId, Transform);
             const d = distanceSq(
                 this.container.x, this.container.y,
-                z.container.x, z.container.y
+                zTransform.x, zTransform.y
             );
 
             if (d < radiusSq) {
-                z.takeDamage(9999); // kill
+                // Deal massive damage to kill
+                let queue = world.getComponent(zId, DamageQueueComponent);
+                if (!queue) {
+                    queue = new DamageQueueComponent();
+                    world.addComponent(zId, queue);
+                }
+                queue.addDamage(9999);
             }
         }
 

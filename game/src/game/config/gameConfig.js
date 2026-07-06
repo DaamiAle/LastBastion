@@ -55,20 +55,22 @@ export const GAME_CONFIG = {
         radius: 20, // Radio de colisión física del jugador
         maxHealth: 140, // Vida máxima del jugador
         speed: 560, // Velocidad de movimiento del jugador
+        acceleration: 20, // Aceleración para un movimiento suave
+        deceleration: 4, // Desaceleración (fricción) al soltar las teclas
         buildRange: 150, // Rango máximo al que puede construir interactuando con los slots
         attackRange: 480, // Rango máximo del disparo del arma principal del jugador
         fireCooldownMs: 130, // Tiempo de espera (milisegundos) entre disparos (cadencia)
         respawnOffsetY: 170, // Distancia en Y respecto al centro al respawnear tras morir
         spriteScale: 0.36, // Escala visual del sprite del jugador
         aimRotationOffset: -1.5707963267948966, // Ajuste de rotación (-90 grados) para que el sprite apunte hacia el mouse
-        animationSpeed: 0.198, // Velocidad a la que se reproducen los frames de la animación de caminar
+        animationSpeed: 0.45, // Velocidad a la que se reproducen los frames de la animación de caminar
         collisionPadding: 60, // Margen extra de colisión para suavizar rebotes contra objetos
         // Balas del arma del jugador
         projectile: {
-            damage: 24, // Daño infligido por cada bala
+            damage: 25, // Daño infligido por cada bala
             color: 0xf8fafc, // Color de la partícula de la bala
-            speed: 920, // Velocidad a la que viaja la bala
-            size: 4, // Tamaño visual del proyectil
+            speed: 600, // Velocidad a la que viaja la bala
+            size: 5, // Tamaño visual del proyectil
             maxDistanceOffset: 40 // Distancia adicional que recorre antes de desaparecer si no golpea nada
         },
         // Ruido generado por el jugador al disparar/moverse
@@ -81,18 +83,21 @@ export const GAME_CONFIG = {
     // Configuración de trampas/explosivos colocables (Superviviente)
     explosives: {
         c4: {
-            radius: 180, // Área de efecto de la explosión
+            damage: 1000,
+            radius: 320, // Área de efecto de la explosión
             cooldownMs: 20000 // Tiempo de enfriamiento para volver a poder usar la habilidad
         },
         landmine: {
-            radius: 120, // Área de explosión de la mina
+            damage: 1000,
+            radius: 160, // Área de explosión de la mina
             cooldownMs: 20000, // Enfriamiento de la habilidad
             triggerRadius: 40 // Distancia a la que un zombie la detona si se acerca
         },
         timebomb: {
-            radius: 250, // Área masiva de explosión
+            damage: 1000,
+            radius: 240, // Área masiva de explosión
             cooldownMs: 20000, // Enfriamiento de la habilidad
-            fuseMs: 5000 // Tiempo (5s) antes de que la bomba de tiempo explote automáticamente
+            fuseMs: 7000 // Tiempo (7s) antes de que la bomba de tiempo explote automáticamente
         }
     },
     // Configuración de la base principal (Bastión / Núcleo)
@@ -120,8 +125,8 @@ export const GAME_CONFIG = {
         },
         projectile: {
             color: 0x7dd3fc, // Color de la bala
-            speed: 760, // Velocidad de la bala
-            size: 4, // Tamaño visual
+            speed: 640, // Velocidad de la bala
+            size: 6, // Tamaño visual
             maxDistanceOffset: 32 // Margen extra de vuelo máximo
         }
     },
@@ -164,16 +169,16 @@ export const GAME_CONFIG = {
     // Atributos y balance de Torretas construibles
     turrets: {
         baseRadius: 18, // Radio físico que bloquea movimiento
-        baseHealth: 120, // Vida base de las torretas recién compradas
+        baseHealth: 300, // Vida base de las torretas (1/4 de la vida del bastión)
         healthPerLevel: 35, // Incremento de vida máxima por cada mejora adquirida
         minFireRateMs: 90, // Límite inferior absoluto de tiempo entre disparos
-        rangeScalePerLevel: 0.08, // Aumento del % de rango por nivel
-        damageScalePerLevel: 0.35, // Aumento del % de daño por nivel
-        fireRateScalePerLevel: 0.05, // Aumento del % de cadencia por nivel
-        upgradeCostBase: 0.75, // Multiplicador base de la fórmula de mejora
-        upgradeCostPerLevel: 0.45, // Factor encarecedor por cada mejora previa comprada
+        rangeScalePerLevel: 0.1, // Aumento del % de rango por nivel
+        damageScalePerLevel: 0.2, // Aumento del % de daño por nivel
+        fireRateScalePerLevel: 0.35, // Aumento del % de cadencia por nivel
+        upgradeCostBase: 1, // Multiplicador base de la fórmula de mejora
+        upgradeCostPerLevel: 0.15, // Factor encarecedor por cada mejora previa comprada
         noiseRadiusScalePerLevel: 0.06, // Expansión del área de ruido por nivel
-        scalePerLevel: 0.06, // Aumento del tamaño del sprite al mejorarse
+        //scalePerLevel: 0.06, // Aumento del tamaño del sprite al mejorarse
         // Tipos de Torreta
         types: {
             sniper: {
@@ -183,8 +188,8 @@ export const GAME_CONFIG = {
                 damage: 150, // Daño letal masivo
                 fireRateMs: 3000, // Tiempo muy largo entre tiros (3s)
                 projectileSpeed: 780, // Bala muy rápida
-                cost: 50, // Barata para compensar cadencia
-                maxHealth: 150, // Relativamente frágil
+                cost: 150, // Incrementado: alto costo por tener daño letal asegurado (one-shot kill)
+                maxHealth: 300, // Vida parametrizada (1/4 del bastión)
                 splashRadius: 0, // Arma de objetivo único
                 noiseRadius: 480, // Hace mucho ruido al disparar
                 noiseTtlMs: 1500, // El ruido dura
@@ -198,7 +203,7 @@ export const GAME_CONFIG = {
                 fireRateMs: 150, // Metralleta muy veloz
                 projectileSpeed: 860, // Bala muy veloz
                 cost: 80, // Costo normal
-                maxHealth: 200, // Buena resistencia
+                maxHealth: 500, // Vida parametrizada (1/4 del bastión)
                 splashRadius: 0, // Objetivo único
                 noiseRadius: 320, // Ruido moderado
                 noiseTtlMs: 1000, // Disipación rápida
@@ -212,8 +217,8 @@ export const GAME_CONFIG = {
                 fireRateMs: 1000, // 1 tiro por segundo
                 projectileSpeed: 620, // Bala lenta y pesada
                 cost: 120, // Muy costosa
-                maxHealth: 250, // Tanquea muchísimo
-                splashRadius: 120, // Genera DAÑO DE ÁREA alrededor del impacto
+                maxHealth: 800, // Vida parametrizada (1/4 del bastión)
+                splashRadius: 160, // Genera DAÑO DE ÁREA alrededor del impacto
                 noiseRadius: 640, // Explota fortísimo
                 noiseTtlMs: 1800, // Ruido súper duradero
                 noiseStrength: 4.5 // Atrae manadas enteras de zombies de inmediato

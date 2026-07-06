@@ -46,6 +46,9 @@ export class GameScene extends Scene {
         this.slots = [];
         this.explosiveCooldowns = { c4: 0, landmine: 0, timebomb: 0 };
         this.plantedC4 = null;
+        this.zombiesKilled = 0;
+        this.survivorDeaths = 0;
+        this.isGameOver = false;
     }
 
     enter() {
@@ -131,9 +134,42 @@ export class GameScene extends Scene {
         this.updateHud();
         this.updateTimers(delta);
 
-        if (this.fortress.hp <= 0) {
-            this.game.sceneManager.change(new MainMenuScene(this.game));
+        if (this.fortress.hp <= 0 && !this.isGameOver) {
+            this.handleGameOver();
         }
+    }
+
+    handleGameOver() {
+        this.isGameOver = true;
+        const stats = {
+            date: new Date().toLocaleDateString(),
+            wave: this.wave,
+            zombiesKilled: this.zombiesKilled,
+            survivorDeaths: this.survivorDeaths
+        };
+
+        const scoresKey = 'bastion-highscores';
+        let highscores = [];
+        try {
+            highscores = JSON.parse(localStorage.getItem(scoresKey)) || [];
+        } catch (e) {
+            highscores = [];
+        }
+
+        highscores.push(stats);
+        
+        highscores.sort((a, b) => {
+            if (b.wave !== a.wave) return b.wave - a.wave;
+            return b.zombiesKilled - a.zombiesKilled;
+        });
+
+        highscores = highscores.slice(0, 10);
+        localStorage.setItem(scoresKey, JSON.stringify(highscores));
+        
+        // Remove current save if any since we lost
+        localStorage.removeItem(this.game.config.saves.slot);
+
+        this.game.sceneManager.change(new MainMenuScene(this.game));
     }
 
     handleInput() {
@@ -237,23 +273,45 @@ export class GameScene extends Scene {
     upgradeSlotTurret(slot, stat) {
         if (!slot?.turret) return;
 
-        const cost = getTurretUpgradeCost(this.game.world, this.game.config, slot.turret, stat);
+        const ai = this.game.world.getComponent(slot.turret, TurretAIComponent);
+        if (ai && ai.upgradeLevels[stat] >= 10) {
+            this.pushMessage('MÁXIMO NIVEL ALCANZADO.');
+            return;
+        }
+
+        const cost = getTurretUpgradeCost(this.game.world, this.game.config.turrets, slot.turret, stat);
         if (this.resources < cost) {
             this.pushMessage('No alcanza para mejorar esa torreta.');
             return;
         }
 
         this.resources -= cost;
-        upgradeTurret(this.game.world, this.game.config, slot.turret, stat);
+        upgradeTurret(this.game.world, this.game.config.turrets, slot.turret, stat);
         slot.redraw(true);
-        
-        const ai = this.game.world.getComponent(slot.turret, TurretAIComponent);
         this.pushMessage(`${ai.label} mejorada en ${this.getUpgradeStatLabel(stat)} a nivel ${ai.level}.`);
         this.persistProgress();
     }
 
     handleHudAction(action) {
         if (!action) return;
+
+        if (action.kind === 'time') {
+            if (action.action === 'play') {
+                this.game.time.scale = 1;
+                this.game.time.isPaused = false;
+            } else if (action.action === 'pause') {
+                this.game.time.isPaused = true;
+            } else if (action.action === 'accel') {
+                this.game.time.scale = 2;
+                this.game.time.isPaused = false;
+            }
+            return;
+        }
+
+        if (action.kind === 'options') {
+            console.log("Opción de menú seleccionada: ", action.action);
+            return;
+        }
 
         if (action.kind === 'build') {
             this.selectedTurretType = action.turretType;
@@ -641,15 +699,27 @@ export class GameScene extends Scene {
 
     onZombieKilled() {
         const economy = this.game.config.economy;
-
+        
+        this.zombiesKilled++;
         this.resources += economy.killReward;
+    }
+
+    onPlayerDied() {
+        this.survivorDeaths++;
     }
 
     updateHud() {
         for (const slot of this.slots) {
+            let matchesType = false;
+            if (slot.turret) {
+                const ai = this.game.world.getComponent(slot.turret, TurretAIComponent);
+                if (ai && ai.turretType === this.selectedTurretType) {
+                    matchesType = true;
+                }
+            }
             const highlighted = slot === this.focusedSlot
                 || slot === this.interactionContext?.entity
-                || slot.turret?.turretType === this.selectedTurretType;
+                || matchesType;
             slot.redraw(highlighted);
         }
 
@@ -733,24 +803,29 @@ export class GameScene extends Scene {
             };
         }
 
+        const ai = this.game.world.getComponent(slot.turret, TurretAIComponent);
+        if (!ai) return null;
+
+        const config = this.game.config.turrets.types[ai.turretType];
+
         return {
-            title: `Slot ${slot.index + 1} | ${slot.turret.label} Nv ${slot.turret.level}`,
+            title: `Slot ${slot.index + 1} | ${config.label} Nv ${ai.level}`,
             specs: this.buildTurretSpecs({
-                type: slot.turret.turretType,
-                label: slot.turret.label,
-                fireRate: slot.turret.fireRate,
-                damage: slot.turret.damage,
-                range: slot.turret.range
+                type: ai.turretType,
+                label: config.label,
+                fireRate: ai.fireRate,
+                damage: ai.damage,
+                range: ai.range
             }),
             anchor,
-            previewRange: slot.turret.range,
+            previewRange: ai.range,
             actions: [
                 ...this.buildUpgradeActions('upgrade-slot-stat', slot.turret, { slot }),
                 {
                     kind: 'sell-slot',
                     iconKey: 'sell',
                     slot,
-                    label: `Vender $${slot.turret.getSellValue()}`
+                    label: `Vender $${getTurretSellValue(this.game.world, this.game.config, slot.turret)}`
                 }
             ]
         };
@@ -788,13 +863,31 @@ export class GameScene extends Scene {
     }
 
     buildUpgradeActions(kind, target, extra = {}) {
-        return ['cadence', 'damage', 'range'].map((stat) => ({
-            kind,
-            stat,
-            iconKey: `upgrade:${stat}`,
-            label: `${this.getUpgradeStatLabel(stat)} $${typeof target === 'number' ? getTurretUpgradeCost(this.game.world, this.game.config, target, stat) : target.getUpgradeCost(stat)}`,
-            ...extra
-        }));
+        return ['cadence', 'damage', 'range'].map((stat) => {
+            let labelText = '';
+            let disabled = false;
+            
+            if (typeof target === 'number') {
+                const ai = this.game.world.getComponent(target, TurretAIComponent);
+                if (ai && ai.upgradeLevels[stat] >= 10) {
+                    labelText = `[MAX] ${this.getUpgradeStatLabel(stat)}`;
+                    disabled = true; // El boton podría soportar disabled si la UI lo permitiese a futuro
+                } else {
+                    labelText = `${this.getUpgradeStatLabel(stat)} $${getTurretUpgradeCost(this.game.world, this.game.config.turrets, target, stat)}`;
+                }
+            } else {
+                labelText = `${this.getUpgradeStatLabel(stat)} $${target.getUpgradeCost(stat)}`;
+            }
+
+            return {
+                kind,
+                stat,
+                iconKey: `upgrade:${stat}`,
+                label: labelText,
+                disabled,
+                ...extra
+            };
+        });
     }
 
     getUpgradeStatLabel(stat) {
@@ -877,13 +970,13 @@ export class GameScene extends Scene {
                     for (const stat of ['damage', 'range', 'cadence']) {
                         const times = savedTurret.upgradeLevels[stat] ?? 0;
                         for (let i = 0; i < times; i++) {
-                            upgradeTurret(this.game.world, this.game.config, slot.turret, stat);
+                            upgradeTurret(this.game.world, this.game.config.turrets, slot.turret, stat);
                         }
                     }
                 } else {
                     const ai = this.game.world.getComponent(slot.turret, TurretAIComponent);
                     while (ai.level < (savedTurret.level ?? 1)) {
-                        upgradeTurret(this.game.world, this.game.config, slot.turret, 'damage');
+                        upgradeTurret(this.game.world, this.game.config.turrets, slot.turret, 'damage');
                     }
                 }
                 
@@ -911,5 +1004,8 @@ export class GameScene extends Scene {
             this.hud.container.destroy({ children: true });
             this.hud = null;
         }
+
+        // Limpiar las entidades del mundo ECS para que no interactúen con la siguiente escena
+        this.game.world.clear();
     }
 }

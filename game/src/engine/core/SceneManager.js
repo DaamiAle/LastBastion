@@ -1,9 +1,13 @@
-﻿export class SceneManager {
+export class SceneManager {
     constructor(game) {
         this.game = game;
 
         this.current = null;
         this.next = null;
+    }
+
+    get currentScene() {
+        return this.current;
     }
 
     change(scene) {

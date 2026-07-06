@@ -1,4 +1,5 @@
 import { Assets } from 'pixi.js';
+import { sound } from '@pixi/sound';
 import { SpriteSheetMeta } from '../assets/SpriteSheetMeta.js';
 import { createFramesFromMeta } from './spriteFrames.js';
 
@@ -123,6 +124,14 @@ export class AssetLoader {
         assets.placeC4Texture = placeC4Texture;
         assets.placeLandmineTexture = placeLandmineTexture;
         assets.placeTimebombTexture = placeTimebombTexture;
+        
+        if (!sound.exists('cannon_shoot')) sound.add('cannon_shoot', '/assets/sound/cannon_shoot.wav');
+        if (!sound.exists('explosive_explode')) sound.add('explosive_explode', '/assets/sound/explosive_explode.wav');
+        if (!sound.exists('machinegun_shot')) sound.add('machinegun_shot', '/assets/sound/machinegun_shot.wav');
+        if (!sound.exists('sniper_shoot')) sound.add('sniper_shoot', '/assets/sound/sniper_shoot.wav');
+        if (!sound.exists('survivor_shoot')) sound.add('survivor_shoot', '/assets/sound/survivor_shoot.wav');
+        if (!sound.exists('zombie_attack')) sound.add('zombie_attack', '/assets/sound/zombie_attack.wav');
+        if (!sound.exists('timebomb_beep')) sound.add('timebomb_beep', '/assets/sound/timebomb_beep.wav');
         assets.hudSpecTextures = {
             type: hudTypeTexture,
             fireRate: hudRateTexture,

@@ -13,6 +13,7 @@ import { TurretAISystem } from '../game/systems/TurretAISystem.js';
 import { CombatSystem } from '../game/systems/CombatSystem.js';
 import { CollisionSystem } from '../game/systems/CollisionSystem.js';
 import { HealthBarSystem } from '../game/systems/HealthBarSystem.js';
+import { SoundManager } from './utils/SoundManager.js';
 
 export class Game {
     constructor() {
@@ -30,6 +31,7 @@ export class Game {
         await this.renderer.init();
         this.app = this.renderer.app; // For backward compatibility during migration
 
+        SoundManager.init();
         this.assets = await AssetLoader.loadAllAssets();
 
         // The AISystems require a reference to the active scene to spawn bullets and find targets.

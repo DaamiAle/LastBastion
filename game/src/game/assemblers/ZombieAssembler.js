@@ -45,6 +45,7 @@ export function assembleZombie(scene, x, y) {
         sprite = new Sprite(texture);
         sprite.anchor.set(0.5);
         sprite.scale.set(config.spriteScale);
+        sprite.rotation = config.aimRotationOffset;
         container.addChild(sprite);
     } else {
         sprite = new Graphics()
@@ -75,7 +76,11 @@ export function assembleZombie(scene, x, y) {
     aiComp.attackCooldown = config.attackCooldownMs;
     aiComp.attackTimer = 0;
     aiComp.damage = config.damage;
-    aiComp.radius = config.radius; // physical radius
+    // El hitbox lógico ahora se adapta exactamente al tamaño visual final en pantalla
+    aiComp.radius = sprite ? sprite.width / 2 : config.radius; 
+    aiComp.detectionRadius = config.detectionRadius;
+    aiComp.wanderTimer = 0;
+    aiComp.wanderAngle = Math.random() * Math.PI * 2;
     world.addComponent(entityId, aiComp);
     
     fsm.change(new IdleState(entityId, scene.game.world));

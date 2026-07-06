@@ -21,7 +21,11 @@ export class IdleState extends State {
         const pseudoZombie = {
             container: { x: transform.x, y: transform.y },
             lastHeardNoiseId: ai.lastHeardNoiseId,
-            radius: ai.radius
+            radius: ai.radius,
+            detectionRadius: ai.detectionRadius,
+            wanderTimer: ai.wanderTimer,
+            wanderAngle: ai.wanderAngle,
+            targetPoint: ai.targetPoint
         };
 
         const stimulus = ai.scene.findZombieStimulus(pseudoZombie);
@@ -29,6 +33,12 @@ export class IdleState extends State {
         ai.target = stimulus.entity ?? null;
         ai.targetPoint = stimulus.point ?? null;
         ai.lastHeardNoiseId = stimulus.noiseId ?? null;
+        
+        ai.wanderTimer = pseudoZombie.wanderTimer;
+        ai.wanderAngle = pseudoZombie.wanderAngle;
+        if (pseudoZombie.targetPoint) {
+            ai.targetPoint = pseudoZombie.targetPoint;
+        }
         
         ai.fsm.change(new ChaseState(entityId, this.world));
     }

@@ -13,5 +13,8 @@ export class ZombieAIComponent extends Component {
         this.attackTimer = 0;
         this.damage = 0;
         this.radius = 0;
+        this.detectionRadius = 0;
+        this.wanderTimer = 0;
+        this.wanderAngle = 0;
     }
 }
