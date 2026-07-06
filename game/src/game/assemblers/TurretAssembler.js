@@ -19,7 +19,7 @@ export function assembleTurret(scene, slot, turretType) {
     const container = new Container();
     container.x = slot.container.x;
     container.y = slot.container.y;
-    container.zIndex = 3;
+    container.zIndex = 4;
 
     const spriteSet = scene.game.assets.turretSprites[turretType];
     const baseSprite = new Sprite(spriteSet.base[0]);
@@ -84,10 +84,16 @@ function applyTurretConfig(world, config, entityId) {
     ai.noiseRadius = Math.round(base.noiseRadius * (1 + totalUpgrades * config.noiseRadiusScalePerLevel));
     ai.level = 1 + totalUpgrades;
 
-    const index = Math.min(2, ai.level - 1);
+    const stage = Math.floor(totalUpgrades / 3);
+    const canonSequence = [0, 0, 1, 1, 2, 2];
+    const baseSequence = [0, 1, 1, 2, 2, 2];
+    
+    const indexC = canonSequence[Math.min(stage, 5)];
+    const indexB = baseSequence[Math.min(stage, 5)];
+
     if (spriteComp && spriteComp.baseSprite && spriteComp.barrelSprite) {
-        spriteComp.baseSprite.texture = spriteComp.spriteSet.base[index];
-        spriteComp.barrelSprite.texture = spriteComp.spriteSet.head[index];
+        spriteComp.baseSprite.texture = spriteComp.spriteSet.base[indexB];
+        spriteComp.barrelSprite.texture = spriteComp.spriteSet.head[indexC];
         
         // El tamaño de las torretas se mantiene fijo.
         spriteComp.baseSprite.width = 40;
@@ -118,9 +124,8 @@ export function getTurretUpgradeCost(world, config, entityId, stat) {
     
     const base = config.types[ai.turretType];
     const totalUpgrades = ai.upgradeLevels.damage + ai.upgradeLevels.range + ai.upgradeLevels.cadence;
-    const branchLevel = ai.upgradeLevels[stat];
     
-    return Math.round(base.cost * (config.upgradeCostBase + (totalUpgrades + branchLevel + 1) * config.upgradeCostPerLevel));
+    return Math.round(base.cost * (config.upgradeCostBase + (totalUpgrades) * config.upgradeCostPerLevel));
 }
 
 export function getTurretSellValue(world, gameConfig, entityId) {

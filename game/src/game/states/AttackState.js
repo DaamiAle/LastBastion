@@ -4,6 +4,7 @@ import { ChaseState } from './ChaseState.js';
 
 import { ZombieAIComponent } from '../components/ZombieAIComponent.js';
 import { Transform } from '../components/Transform.js';
+import { SoundManager } from '../../engine/utils/SoundManager.js';
 import { DamageQueueComponent } from '../components/DamageQueueComponent.js';
 
 export class AttackState extends State {
@@ -50,8 +51,12 @@ export class AttackState extends State {
         if (ai.attackTimer <= 0) {
             ai.attackTimer = ai.attackCooldown;
 
-            if (target.takeDamage) {
+            if (ai.target.type === 'fortress') {
+                ai.target.hp -= ai.damage;
+                SoundManager.play('zombie_attack');
+            } else if (target.takeDamage) {
                 target.takeDamage(ai.damage);
+                SoundManager.play('zombie_attack');
             } else {
                 let damageQueue = this.world.getComponent(target, DamageQueueComponent);
                 if (!damageQueue) {
@@ -59,6 +64,7 @@ export class AttackState extends State {
                     this.world.addComponent(target, damageQueue);
                 }
                 damageQueue.addDamage(ai.damage);
+                SoundManager.play('zombie_attack');
             }
         }
     }

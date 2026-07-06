@@ -19,24 +19,27 @@ export function assembleBullet(scene, x, y, dirX, dirY, options = {}) {
 
     world.addComponent(entityId, new Transform(x, y));
     world.addComponent(entityId, new Velocity(dirX, dirY, speed));
-    world.addComponent(entityId, new ProjectileComponent(x, y, damage, maxDistance, splashRadius));
 
     const container = new Container();
     container.x = x;
     container.y = y;
-    container.zIndex = 5;
+    container.zIndex = 6;
 
     let graphics;
+    let hitRadius = size;
     if (texture) {
         graphics = new Sprite(texture);
         graphics.anchor.set(0.5);
         graphics.scale.set(size > 4 ? 1.5 : 1);
         graphics.rotation = Math.atan2(dirY, dirX) + rotationOffset;
+        hitRadius = graphics.width / 2;
     } else {
         graphics = new Graphics()
             .circle(0, 0, size)
             .fill(color);
     }
+
+    world.addComponent(entityId, new ProjectileComponent(x, y, damage, maxDistance, splashRadius, hitRadius));
 
     container.addChild(graphics);
     scene.container.addChild(container);

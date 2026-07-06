@@ -2,6 +2,7 @@ import { AnimatedSprite, Graphics } from 'pixi.js';
 import { Entity } from '../../engine/core/Entity.js';
 import { clamp } from '../../engine/utils/Utils.js';
 import { assembleBullet } from '../assemblers/BulletAssembler.js';
+import { SoundManager } from '../../engine/utils/SoundManager.js';
 
 export class PlayerEntity extends Entity {
     constructor(scene, x, y) {
@@ -20,6 +21,8 @@ export class PlayerEntity extends Entity {
         this.fireTimer = 0;
         this.isDead = false;
         this.canTakeDamage = true;
+        this.vx = 0;
+        this.vy = 0;
         this.x = x;
         this.y = y;
     }
@@ -52,7 +55,7 @@ export class PlayerEntity extends Entity {
         this.container.x = this.x;
         this.container.y = this.y;
         this.container.scale.set(1, 1);
-        this.container.zIndex = 4;
+        this.container.zIndex = 5;
     }
 
     update(delta) {
@@ -83,13 +86,20 @@ export class PlayerEntity extends Entity {
             const len = Math.hypot(dx, dy) || 1;
             dx /= len;
             dy /= len;
-
-            this.container.x += dx * this.baseSpeed * dt;
-            this.container.y += dy * this.baseSpeed * dt;
-
-            this.container.x = clamp(this.container.x, config.collisionPadding, this.scene.worldWidth - config.collisionPadding);
-            this.container.y = clamp(this.container.y, config.collisionPadding, this.scene.worldHeight - config.collisionPadding);
         }
+
+        const targetVx = dx * this.baseSpeed;
+        const targetVy = dy * this.baseSpeed;
+        const currentAccelFactor = moving ? (config.acceleration ?? 10) : (config.deceleration ?? 15);
+
+        this.vx += (targetVx - this.vx) * currentAccelFactor * dt;
+        this.vy += (targetVy - this.vy) * currentAccelFactor * dt;
+
+        this.container.x += this.vx * dt;
+        this.container.y += this.vy * dt;
+
+        this.container.x = clamp(this.container.x, config.collisionPadding, this.scene.worldWidth - config.collisionPadding);
+        this.container.y = clamp(this.container.y, config.collisionPadding, this.scene.worldHeight - config.collisionPadding);
 
         const aimPoint = this.scene.getCursorWorldPoint();
         const shouldShoot = input.mouse.leftDown
@@ -101,18 +111,30 @@ export class PlayerEntity extends Entity {
         }
 
         if (this.sprite instanceof AnimatedSprite) {
-            this.sprite.animationSpeed = moving ? config.animationSpeed : 0;
+            const currentSpeed = Math.hypot(this.vx, this.vy);
+            const isPhysicallyMoving = currentSpeed > 10; // Umbral minimo para considerar que se mueve
 
-            if (!moving) {
+            this.sprite.animationSpeed = isPhysicallyMoving ? config.animationSpeed : 0;
+
+            if (!isPhysicallyMoving) {
                 this.sprite.gotoAndStop(0);
             } else if (!this.sprite.playing) {
                 this.sprite.play();
             }
 
-            const aimDx = aimPoint.x - this.container.x;
-            const aimDy = aimPoint.y - this.container.y;
-            if (aimDx !== 0 || aimDy !== 0) {
-                this.sprite.rotation = Math.atan2(aimDy, aimDx) + config.aimRotationOffset;
+            let faceDx = 0;
+            let faceDy = 0;
+            
+            if (input.mouse.leftDown) {
+                faceDx = aimPoint.x - this.container.x;
+                faceDy = aimPoint.y - this.container.y;
+            } else if (isPhysicallyMoving) {
+                faceDx = this.vx;
+                faceDy = this.vy;
+            }
+
+            if (faceDx !== 0 || faceDy !== 0) {
+                this.sprite.rotation = Math.atan2(faceDy, faceDx) + config.aimRotationOffset;
             }
         }
     }
@@ -136,6 +158,8 @@ export class PlayerEntity extends Entity {
             ttl: noise.ttlMs,
             strength: noise.strength
         });
+        
+        SoundManager.play('survivor_shoot');
 
         assembleBullet(
             this.scene,
@@ -164,6 +188,9 @@ export class PlayerEntity extends Entity {
             this.health = 0;
             this.isDead = true;
             this.container.alpha = 0.4;
+            if (this.scene && this.scene.onPlayerDied) {
+                this.scene.onPlayerDied();
+            }
         }
     }
 }

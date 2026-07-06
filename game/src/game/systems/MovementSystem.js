@@ -2,6 +2,7 @@ import { System } from '../../engine/ecs/System.js';
 import { Transform } from '../components/Transform.js';
 import { Velocity } from '../components/Velocity.js';
 import { BoidComponent } from '../components/BoidComponent.js';
+import { TurretAIComponent } from '../components/TurretAIComponent.js';
 
 export class MovementSystem extends System {
     constructor(world, sceneManager) {
@@ -10,7 +11,7 @@ export class MovementSystem extends System {
     }
 
     update(delta) {
-        const dt = delta.deltaMS;
+        const dt = delta.deltaMS / 1000;
         
         // 1. Process Boids
         const boidEntities = this.world.getEntitiesWith(Transform, Velocity, BoidComponent);
@@ -45,20 +46,40 @@ export class MovementSystem extends System {
             transform.x += velocity.dx * velocity.speed * dt;
             transform.y += velocity.dy * velocity.speed * dt;
             
-            // Fortress Collision
-            const scene = this.sceneManager?.currentScene;
-            if (scene && scene.fortress && scene.fortress.isAlive) {
-                const fortress = scene.fortress;
-                const dx = transform.x - fortress.container.x;
-                const dy = transform.y - fortress.container.y;
-                const distance = Math.hypot(dx, dy) || 0.0001;
-                // Asumimos un radio generico de 12 para entidades si no tienen uno propio (zombies)
-                const minDistance = (fortress.radius ?? 0) + 12;
+            // Aplicar colisiones con edificios solo a los zombies (Boids)
+            if (this.world.hasComponent(entityId, BoidComponent)) {
+                // Fortress Collision
+                const scene = this.sceneManager?.currentScene;
+                if (scene && scene.fortress && scene.fortress.hp > 0) {
+                    // La base visual es 432x432, su radio visual ronda los 216.
+                    // Añadimos ~24 para tener en cuenta el radio físico del zombie.
+                    const minDistance = 216 + 24;
+                    const dx = transform.x - scene.fortress.container.x;
+                    const dy = transform.y - scene.fortress.container.y;
+                    const distance = Math.hypot(dx, dy) || 0.0001;
 
-                if (distance < minDistance) {
-                    const push = minDistance - distance;
-                    transform.x += (dx / distance) * push;
-                    transform.y += (dy / distance) * push;
+                    if (distance < minDistance) {
+                        const push = minDistance - distance;
+                        transform.x += (dx / distance) * push;
+                        transform.y += (dy / distance) * push;
+                    }
+                }
+
+                // Turret Slots Collision
+                if (scene && scene.slots) {
+                    for (const slot of scene.slots) {
+                        const dx = transform.x - slot.container.x;
+                        const dy = transform.y - slot.container.y;
+                        const distance = Math.hypot(dx, dy) || 0.0001;
+                        // Los slots miden 40x40 (radio 20). Sumamos el radio del zombie (16) + padding (8).
+                        const minDistance = 20 + 24;
+
+                        if (distance < minDistance) {
+                            const push = minDistance - distance;
+                            transform.x += (dx / distance) * push;
+                            transform.y += (dy / distance) * push;
+                        }
+                    }
                 }
             }
         }

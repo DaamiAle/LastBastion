@@ -3,6 +3,7 @@ import { Entity } from '../../engine/core/Entity.js';
 import { assembleBullet } from '../assemblers/BulletAssembler.js';
 import { Health } from '../components/Health.js';
 import { Transform } from '../components/Transform.js';
+import { SoundManager } from '../../engine/utils/SoundManager.js';
 
 export class FortressEntity extends Entity {
     constructor(scene, x, y) {
@@ -44,18 +45,16 @@ export class FortressEntity extends Entity {
 
         const spriteSet = this.scene.game.assets.turretSprites.machinegun;
 
+        const config = this.scene.game.config.fortress;
+
         this.turretBase = new Sprite(spriteSet.base[1]);
         this.turretBase.anchor.set(0.5);
-        this.turretBase.width = 40;
-        this.turretBase.height = 40;
-        this.turretBase.scale.set(this.scene.game.config.fortress.turretVisualScale);
+        this.turretBase.scale.set(config.turretVisualScale);
 
         this.turret = new Sprite(spriteSet.head[1]);
         this.turret.anchor.set(0.5);
-        this.turret.width = 40;
-        this.turret.height = 40;
+        this.turret.scale.set(config.turretVisualScale);
         this.turret.rotation = Math.PI * 0.5;
-        this.turret.scale.set(this.scene.game.config.fortress.turretVisualScale);
 
         this.container.addChild(this.base);
         this.container.addChild(this.turretBase);
@@ -64,7 +63,7 @@ export class FortressEntity extends Entity {
         this.container.x = this.x;
         this.container.y = this.y;
         this.container.scale.set(this.scene.game.config.fortress.scale);
-        this.container.zIndex = 2;
+        this.container.zIndex = 4;
     }
 
     takeDamage(amount) {
@@ -143,6 +142,8 @@ export class FortressEntity extends Entity {
                     ttl: noise.ttlMs,
                     strength: noise.strength
                 });
+                
+                SoundManager.play('machinegun_shot');
 
                 assembleBullet(
                     this.scene,
@@ -190,8 +191,7 @@ export class FortressEntity extends Entity {
     getUpgradeCost(stat) {
         const config = this.scene.game.config.fortress;
         const total = this.getTotalUpgradeCount();
-        const branchLevel = this.upgradeLevels[stat];
-        return Math.round(config.upgradeBaseCost + (total + branchLevel + 1) * config.upgradeCostPerLevel);
+        return Math.round(config.upgradeBaseCost + (total) * config.upgradeCostPerLevel);
     }
 
     getTotalUpgradeCount() {

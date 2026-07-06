@@ -108,9 +108,18 @@ export class HUD {
         };
 
         this.btnPlay = createIconButton(1135, new Graphics().poly([-3, -6, 7, 0, -3, 6]).fill(0xffffff));
+        this.btnPlay.on('pointerdown', () => this.onAction({ kind: 'time', action: 'play' }));
+
         this.btnPause = createIconButton(1170, new Graphics().rect(-4, -6, 3, 12).rect(2, -6, 3, 12).fill(0xffffff));
+        this.btnPause.on('pointerdown', () => this.onAction({ kind: 'time', action: 'pause' }));
+
         this.btnAccel = createIconButton(1205, new Graphics().poly([-6, -6, 0, 0, -6, 6]).poly([0, -6, 6, 0, 0, 6]).fill(0xffffff));
+        this.btnAccel.on('pointerdown', () => this.onAction({ kind: 'time', action: 'accel' }));
+
         this.btnOptions = createIconButton(1240, new Graphics().circle(0, 0, 4).stroke({ color: 0xffffff, width: 2 }).circle(0, 0, 1).fill(0xffffff));
+        this.btnOptions.on('pointerdown', () => {
+            this.toggleOptionsMenu();
+        });
 
         this.message = new Text({
             text: '',
@@ -210,6 +219,8 @@ export class HUD {
         this.container.addChild(this.contextContainer);
         this.container.addChild(this.topBar);
         this.container.addChild(this.rightBar);
+        
+        this._buildOptionsMenu();
     }
 
     update(data) {
@@ -301,6 +312,86 @@ export class HUD {
 
         this.drawRangeIndicator(anchor, contextMenu.previewRange ?? 0);
         this.layoutContextButtons(anchor, contextMenu.actions);
+    }
+
+    _buildOptionsMenu() {
+        this.optionsContainer = new Container();
+        this.optionsContainer.visible = false;
+        this.optionsContainer.zIndex = 200;
+
+        const overlay = new Graphics().rect(0, 0, 1280, 720).fill({ color: 0x000000, alpha: 0.6 });
+        overlay.eventMode = 'static';
+        this.optionsContainer.addChild(overlay);
+
+        const menuBox = new Container();
+        menuBox.x = 1280 / 2;
+        menuBox.y = 720 / 2;
+        
+        const boxBg = new Graphics()
+            .roundRect(-150, -180, 300, 360, 12)
+            .fill(0x1e293b)
+            .stroke({ color: 0x334155, width: 4 });
+        menuBox.addChild(boxBg);
+
+        const title = new Text({
+            text: 'OPCIONES',
+            style: { fill: 0xffffff, fontSize: 24, fontWeight: 'bold' }
+        });
+        title.anchor.set(0.5);
+        title.y = -135;
+        menuBox.addChild(title);
+
+        const buildOptionButton = (label, yPos, callback) => {
+            const btn = new Container();
+            btn.eventMode = 'static';
+            btn.cursor = 'pointer';
+            
+            const btnBg = new Graphics()
+                .roundRect(-100, -22, 200, 44, 8)
+                .fill(0x334155);
+            
+            const text = new Text({
+                text: label,
+                style: { fill: 0xffffff, fontSize: 18 }
+            });
+            text.anchor.set(0.5);
+            
+            btn.addChild(btnBg);
+            btn.addChild(text);
+            btn.y = yPos;
+            
+            btn.on('pointerover', () => btnBg.clear().roundRect(-100, -22, 200, 44, 8).fill(0x475569));
+            btn.on('pointerout', () => btnBg.clear().roundRect(-100, -22, 200, 44, 8).fill(0x334155));
+            btn.on('pointerdown', callback);
+            return btn;
+        };
+
+        const btnClose = new Container();
+        btnClose.eventMode = 'static';
+        btnClose.cursor = 'pointer';
+        const closeIcon = new Graphics().moveTo(-8, -8).lineTo(8, 8).moveTo(8, -8).lineTo(-8, 8).stroke({color: 0xffffff, width: 3});
+        btnClose.addChild(closeIcon);
+        btnClose.x = 120;
+        btnClose.y = -135;
+        btnClose.on('pointerdown', () => this.toggleOptionsMenu());
+        menuBox.addChild(btnClose);
+
+        menuBox.addChild(buildOptionButton('Guardar', -60, () => this.onAction({ kind: 'options', action: 'save' })));
+        menuBox.addChild(buildOptionButton('Volumen', -5, () => this.onAction({ kind: 'options', action: 'volume' })));
+        menuBox.addChild(buildOptionButton('Menú Principal', 50, () => this.onAction({ kind: 'options', action: 'mainmenu' })));
+        menuBox.addChild(buildOptionButton('Salir', 105, () => this.onAction({ kind: 'options', action: 'exit' })));
+
+        this.optionsContainer.addChild(menuBox);
+        this.container.addChild(this.optionsContainer);
+    }
+
+    toggleOptionsMenu() {
+        this.optionsContainer.visible = !this.optionsContainer.visible;
+        if (this.optionsContainer.visible) {
+            this.onAction({ kind: 'time', action: 'pause' });
+        } else {
+            this.onAction({ kind: 'time', action: 'play' });
+        }
     }
 
     drawRangeIndicator(anchor, radius) {

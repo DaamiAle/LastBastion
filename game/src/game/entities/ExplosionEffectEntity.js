@@ -17,6 +17,7 @@ export class ExplosionEffectEntity extends Entity {
         this.y = y;
         this.container.x = x;
         this.container.y = y;
+        this.container.zIndex = 10;
         this.isAlive = true;
         this.timer = 0;
         this.duration = 400; // ms

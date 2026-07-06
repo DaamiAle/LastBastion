@@ -1,5 +1,9 @@
 import { Sprite } from 'pixi.js';
 import { Entity } from '../../engine/core/Entity.js';
+import { SoundManager } from '../../engine/utils/SoundManager.js';
+import { Transform } from '../components/Transform.js';
+import { Health } from '../components/Health.js';
+import { DamageQueueComponent } from '../components/DamageQueueComponent.js';
 
 export class ExplosiveEntity extends Entity {
     constructor(scene, x, y, type) {
@@ -21,6 +25,7 @@ export class ExplosiveEntity extends Entity {
         this.detonated = false;
 
         this.timer = 0;
+        this.beepPlayed = false;
     }
 
     update(dt) {
@@ -38,6 +43,11 @@ export class ExplosiveEntity extends Entity {
                     const isBlink = Math.floor(this.timer / blinkRate) % 2 === 0;
                     this.sprite.tint = isBlink ? 0xff0000 : 0xffffff;
                 }
+                
+                if (!this.beepPlayed) {
+                    SoundManager.play('timebomb_beep');
+                    this.beepPlayed = true;
+                }
             }
 
             if (this.timer >= this.config.fuseMs) {
@@ -46,9 +56,20 @@ export class ExplosiveEntity extends Entity {
             }
         } else if (this.type === 'landmine') {
             for (const zombie of this.scene.getEnemies()) {
-                if (!zombie.isAlive) continue;
-                const dx = zombie.container.x - this.container.x;
-                const dy = zombie.container.y - this.container.y;
+                let zx, zy;
+                if (typeof zombie === 'number') {
+                    const transform = this.scene.game.world.getComponent(zombie, Transform);
+                    if (!transform) continue;
+                    zx = transform.x;
+                    zy = transform.y;
+                } else {
+                    if (!zombie.isAlive) continue;
+                    zx = zombie.container.x;
+                    zy = zombie.container.y;
+                }
+                
+                const dx = zx - this.container.x;
+                const dy = zy - this.container.y;
                 const distSq = dx * dx + dy * dy;
                 const triggerSq = this.config.triggerRadius * this.config.triggerRadius;
                 if (distSq <= triggerSq) {
@@ -66,21 +87,47 @@ export class ExplosiveEntity extends Entity {
 
         const radiusSq = this.config.radius * this.config.radius;
         for (const zombie of this.scene.getEnemies()) {
-            if (!zombie.isAlive) continue;
-            const dx = zombie.container.x - this.container.x;
-            const dy = zombie.container.y - this.container.y;
+            let zx, zy;
+            if (typeof zombie === 'number') {
+                const transform = this.scene.game.world.getComponent(zombie, Transform);
+                if (!transform) continue;
+                zx = transform.x;
+                zy = transform.y;
+            } else {
+                if (!zombie.isAlive) continue;
+                zx = zombie.container.x;
+                zy = zombie.container.y;
+            }
+
+            const dx = zx - this.container.x;
+            const dy = zy - this.container.y;
             const distSq = dx * dx + dy * dy;
+            
             if (distSq <= radiusSq) {
-                if (zombie.takeDamage) {
-                    zombie.takeDamage(zombie.maxHp);
+                if (typeof zombie === 'number') {
+                    let damageQueue = this.scene.game.world.getComponent(zombie, DamageQueueComponent);
+                    if (!damageQueue) {
+                        damageQueue = new DamageQueueComponent();
+                        this.scene.game.world.addComponent(zombie, damageQueue);
+                    }
+                    console.log("EXPLOSIVE addDamage to zombie:", zombie, "amount:", this.config.damage);
+                    damageQueue.addDamage(this.config.damage);
                 } else {
-                    zombie.hp = 0;
+                    if (zombie.takeDamage) {
+                        zombie.takeDamage(this.config.damage);
+                    } else {
+                        zombie.hp -= this.config.damage;
+                    }
                 }
             }
         }
 
-        if (this.scene.spawnExplosion) {
-            this.scene.spawnExplosion(this.x, this.y, this.config.radius);
+        if (this.type === 'c4') {
+            this.scene.c4Ready = false;
         }
+
+        SoundManager.play('explosive_explode');
+
+        this.scene.spawnExplosion(this.container.x, this.container.y, this.config.radius);
     }
 }

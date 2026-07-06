@@ -25,19 +25,31 @@ export class World {
 
     removeComponent(entityId, componentClass) {
         const components = this.entities.get(entityId);
-        if (components) {
-            components.delete(componentClass);
+        if (!components) return;
+
+        if (components.delete(componentClass)) return;
+
+        const keyToDelete = Array.from(components.keys()).find(k => k.name === componentClass.name);
+        if (keyToDelete) {
+            components.delete(keyToDelete);
         }
     }
 
     getComponent(entityId, componentClass) {
         const components = this.entities.get(entityId);
-        return components ? components.get(componentClass) : undefined;
+        if (!components) return undefined;
+        let comp = components.get(componentClass);
+        if (!comp) {
+            comp = Array.from(components.values()).find(c => c.constructor.name === componentClass.name);
+        }
+        return comp;
     }
 
     hasComponent(entityId, componentClass) {
         const components = this.entities.get(entityId);
-        return components ? components.has(componentClass) : false;
+        if (!components) return false;
+        if (components.has(componentClass)) return true;
+        return Array.from(components.values()).some(c => c.constructor.name === componentClass.name);
     }
 
     getEntitiesWith(...componentClasses) {
@@ -47,7 +59,11 @@ export class World {
             
             let hasAll = true;
             for (const componentClass of componentClasses) {
-                if (!components.has(componentClass)) {
+                let found = components.has(componentClass);
+                if (!found) {
+                    found = Array.from(components.values()).some(c => c.constructor.name === componentClass.name);
+                }
+                if (!found) {
                     hasAll = false;
                     break;
                 }
@@ -57,6 +73,10 @@ export class World {
             }
         }
         return result;
+    }
+
+    getSystem(systemName) {
+        return this.systems.find(sys => sys.constructor.name === systemName);
     }
 
     addSystem(system) {
@@ -72,6 +92,11 @@ export class World {
         for (const entityId of this.entitiesToDestroy) {
             this.entities.delete(entityId);
         }
+        this.entitiesToDestroy.clear();
+    }
+
+    clear() {
+        this.entities.clear();
         this.entitiesToDestroy.clear();
     }
 }

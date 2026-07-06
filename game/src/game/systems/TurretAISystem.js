@@ -3,6 +3,7 @@ import { TurretAIComponent } from '../components/TurretAIComponent.js';
 import { Transform } from '../components/Transform.js';
 import { AimComponent } from '../components/AimComponent.js';
 import { assembleBullet } from '../assemblers/BulletAssembler.js';
+import { SoundManager } from '../../engine/utils/SoundManager.js';
 
 export class TurretAISystem extends System {
     constructor(world, sceneManager) {
@@ -27,8 +28,20 @@ export class TurretAISystem extends System {
                 ai.target = null;
             }
             if (ai.target) {
-                const targetX = ai.target.container ? ai.target.container.x : ai.target.x;
-                const targetY = ai.target.container ? ai.target.container.y : ai.target.y;
+                let targetX, targetY;
+                if (typeof ai.target === 'number') {
+                    const tTransform = this.world.getComponent(ai.target, Transform);
+                    if (tTransform) {
+                        targetX = tTransform.x;
+                        targetY = tTransform.y;
+                    } else {
+                        ai.target = null;
+                        continue;
+                    }
+                } else {
+                    targetX = ai.target.container ? ai.target.container.x : ai.target.x;
+                    targetY = ai.target.container ? ai.target.container.y : ai.target.y;
+                }
                 const dx = targetX - transform.x;
                 const dy = targetY - transform.y;
                 if (dx * dx + dy * dy > ai.range * ai.range) {
@@ -43,8 +56,20 @@ export class TurretAISystem extends System {
 
             if (!ai.target) continue;
 
-            const targetX = ai.target.container ? ai.target.container.x : ai.target.x;
-            const targetY = ai.target.container ? ai.target.container.y : ai.target.y;
+            let targetX, targetY;
+            if (typeof ai.target === 'number') {
+                const tTransform = this.world.getComponent(ai.target, Transform);
+                if (tTransform) {
+                    targetX = tTransform.x;
+                    targetY = tTransform.y;
+                } else {
+                    continue;
+                }
+            } else {
+                targetX = ai.target.container ? ai.target.container.x : ai.target.x;
+                targetY = ai.target.container ? ai.target.container.y : ai.target.y;
+            }
+            
             const dx = targetX - transform.x;
             const dy = targetY - transform.y;
             const angle = Math.atan2(dy, dx);
@@ -64,6 +89,9 @@ export class TurretAISystem extends System {
                     ttl: ai.noiseTtlMs,
                     strength: ai.noiseStrength
                 });
+                
+                const soundAlias = ai.turretType === 'machinegun' ? 'machinegun_shot' : `${ai.turretType}_shoot`;
+                SoundManager.play(soundAlias);
 
                 assembleBullet(
                     scene,
