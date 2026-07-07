@@ -51,9 +51,9 @@ export class MovementSystem extends System {
                 // Fortress Collision
                 const scene = this.sceneManager?.currentScene;
                 if (scene && scene.fortress && scene.fortress.hp > 0) {
-                    // La base visual es 432x432, su radio visual ronda los 216.
-                    // Añadimos ~24 para tener en cuenta el radio físico del zombie.
-                    const minDistance = 216 + 24;
+                    // La base visual es 432x432 escalada a 0.6 = ~260, su radio visual ronda los 130.
+                    // Añadimos ~16 para tener en cuenta el radio físico del zombie.
+                    const minDistance = 146;
                     const dx = transform.x - scene.fortress.container.x;
                     const dy = transform.y - scene.fortress.container.y;
                     const distance = Math.hypot(dx, dy) || 0.0001;

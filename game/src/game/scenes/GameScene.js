@@ -12,9 +12,11 @@ import { assembleZombie } from '../assemblers/ZombieAssembler.js';
 import { ZombieAIComponent } from '../components/ZombieAIComponent.js';
 import { Transform } from '../components/Transform.js';
 import { Health } from '../components/Health.js';
+import { SpriteComponent } from '../components/SpriteComponent.js';
 import { ExplosiveEntity } from '../entities/ExplosiveEntity.js';
 import { ExplosionEffectEntity } from '../entities/ExplosionEffectEntity.js';
 import { MainMenuScene } from './MainMenuScene.js';
+import { SoundManager } from '../../engine/utils/SoundManager.js';
 
 export class GameScene extends Scene {
     constructor(game, options = {}) {
@@ -23,6 +25,7 @@ export class GameScene extends Scene {
         const config = game.config;
 
         this.loadSave = options.loadSave ?? false;
+        this.saveData = options.saveData ?? null;
         this.grid = new SpatialHashGrid(config.world.gridSize);
         this.resources = options.resources ?? config.economy.startingResources;
         this.wave = options.wave ?? config.waves.initialWave;
@@ -96,6 +99,13 @@ export class GameScene extends Scene {
         } else {
             this.startNextWave();
         }
+
+        SoundManager.startAmbience();
+    }
+
+    exit() {
+        SoundManager.stopAmbience();
+        super.exit();
     }
 
     drawArena() {
@@ -246,6 +256,12 @@ export class GameScene extends Scene {
         const refund = getTurretSellValue(this.game.world, this.game.config, slot.turret);
         this.resources += refund;
         
+        const spriteComp = this.game.world.getComponent(slot.turret, SpriteComponent);
+        if (spriteComp && spriteComp.container) {
+            spriteComp.container.destroy({ children: true });
+            spriteComp.container = null;
+        }
+
         this.game.world.destroyEntity(slot.turret);
         
         slot.turret = null;
@@ -309,7 +325,11 @@ export class GameScene extends Scene {
         }
 
         if (action.kind === 'options') {
-            console.log("Opción de menú seleccionada: ", action.action);
+            if (action.action === 'save') {
+                this.downloadSaveFile();
+            } else if (action.action === 'surrender') {
+                this.surrender();
+            }
             return;
         }
 
@@ -362,6 +382,54 @@ export class GameScene extends Scene {
 
     spawnExplosion(x, y, radius) {
         this.addEntity(new ExplosionEffectEntity(this, x, y, radius));
+    }
+
+    downloadSaveFile() {
+        const turretData = this.slots.map((slot) => {
+            if (!slot.turret) return null;
+
+            const ai = this.game.world.getComponent(slot.turret, TurretAIComponent);
+            const health = this.game.world.getComponent(slot.turret, Health);
+            if (!ai || !health) return null;
+
+            return {
+                type: ai.turretType,
+                level: ai.level,
+                health: health.hp,
+                invested: ai.invested,
+                upgradeLevels: { ...ai.upgradeLevels }
+            };
+        });
+
+        const state = {
+            wave: this.wave,
+            resources: this.resources,
+            selectedTurretType: this.selectedTurretType,
+            fortressHp: this.fortress.hp,
+            fortressUpgradeLevels: { ...this.fortress.upgradeLevels },
+            player: {
+                x: this.player.container.x,
+                y: this.player.container.y,
+                health: this.player.health
+            },
+            turrets: turretData
+        };
+
+        const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `bastion_save_wave_${state.wave}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        this.pushMessage('Partida guardada y descargada.');
+    }
+
+    surrender() {
+        if (this.isGameOver) return;
+        this.fortress.hp = 0;
+        this.pushMessage('¡Te has rendido!');
     }
 
     updateWaveSpawner(delta) {
@@ -434,11 +502,14 @@ export class GameScene extends Scene {
         this.spawnTimer = waves.firstSpawnDelayMs;
 
         this.resources += economy.waveStartRewardBase + Math.floor(this.wave * economy.waveStartRewardPerWave);
-        //this.waveBanner = `OLEADA ${this.wave}`;
+        
         this.waveBannerTimer = this.game.config.ui.waveBannerDurationMs;
         if (this.wave > 1) {
             this.pushMessage(`Oleada ${this.wave - 1} iniciada.`);
+            const waveSoundId = Math.random() < 0.5 ? 1 : 2;
+            SoundManager.play(`zombie_wave_${waveSoundId}`, { volume: 0.8 });
         }
+        
         this.persistProgress();
     }
 
@@ -930,7 +1001,7 @@ export class GameScene extends Scene {
     }
 
     restoreProgress() {
-        const data = this.game.save.load(this.game.config.saves.slot);
+        const data = this.saveData || this.game.save.load(this.game.config.saves.slot);
         if (!data) {
             this.pushMessage('No habia partida guardada. Se inicia una nueva.');
             return;

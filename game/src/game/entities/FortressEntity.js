@@ -191,7 +191,7 @@ export class FortressEntity extends Entity {
     getUpgradeCost(stat) {
         const config = this.scene.game.config.fortress;
         const total = this.getTotalUpgradeCount();
-        return Math.round(config.upgradeBaseCost + (total) * config.upgradeCostPerLevel);
+        return Math.round(config.upgradeBaseCost * (1 + (total) * config.upgradeCostPerLevel));
     }
 
     getTotalUpgradeCount() {

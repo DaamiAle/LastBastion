@@ -17,8 +17,26 @@ export class MainMenuScene extends Scene {
             this.game.sceneManager.change(new GameScene(this.game));
         });
 
-        this.addButton('Continuar', centerX, 300, () => {
-            this.game.sceneManager.change(new GameScene(this.game, { loadSave: true }));
+        this.addButton('Cargar', centerX, 300, () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        this.game.sceneManager.change(new GameScene(this.game, { loadSave: true, saveData: data }));
+                    } catch (error) {
+                        console.error('Error parseando partida:', error);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
         });
 
         this.addButton('Puntuaciones', centerX, 400, () => {

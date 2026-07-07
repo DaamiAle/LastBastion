@@ -24,8 +24,14 @@ export class TurretAISystem extends System {
             ai.fireTimer -= delta.deltaMS;
 
             // Validación de objetivo (muerto o fuera de rango)
-            if (ai.target && !ai.target.isAlive) {
-                ai.target = null;
+            if (ai.target !== null) {
+                if (typeof ai.target === 'number') {
+                    if (!this.world.hasEntity(ai.target)) {
+                        ai.target = null;
+                    }
+                } else if (!ai.target.isAlive) {
+                    ai.target = null;
+                }
             }
             if (ai.target) {
                 let targetX, targetY;

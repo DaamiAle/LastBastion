@@ -132,6 +132,10 @@ export class AssetLoader {
         if (!sound.exists('survivor_shoot')) sound.add('survivor_shoot', '/assets/sound/survivor_shoot.wav');
         if (!sound.exists('zombie_attack')) sound.add('zombie_attack', '/assets/sound/zombie_attack.wav');
         if (!sound.exists('timebomb_beep')) sound.add('timebomb_beep', '/assets/sound/timebomb_beep.wav');
+        if (!sound.exists('zombie_wave_1')) sound.add('zombie_wave_1', '/assets/sound/zombie_wave_1.wav');
+        if (!sound.exists('zombie_wave_2')) sound.add('zombie_wave_2', '/assets/sound/zombie_wave_2.wav');
+        if (!sound.exists('ambience_1')) sound.add('ambience_1', '/assets/sound/ambience_1.wav');
+        if (!sound.exists('ambience_2')) sound.add('ambience_2', '/assets/sound/ambience_2.wav');
         assets.hudSpecTextures = {
             type: hudTypeTexture,
             fireRate: hudRateTexture,
