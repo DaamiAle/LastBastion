@@ -28,6 +28,15 @@ export class World {
     }
 
     /**
+     * Checks whether an entity ID exists in the world and is not queued for destruction.
+     * @param {number} entityId The ID of the entity to check
+     * @returns {boolean} True if the entity exists
+     */
+    hasEntity(entityId) {
+        return this.entities.has(entityId) && !this.entitiesToDestroy.has(entityId);
+    }
+
+    /**
      * Queues an entity for destruction at the end of the current update cycle.
      * @param {number} entityId The ID of the entity to destroy
      */
