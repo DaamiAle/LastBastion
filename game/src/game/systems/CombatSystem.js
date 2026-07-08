@@ -2,6 +2,8 @@ import { System } from '../../engine/ecs/System.js';
 import { Health } from '../components/Health.js';
 import { DamageQueueComponent } from '../components/DamageQueueComponent.js';
 import { SpriteComponent } from '../components/SpriteComponent.js';
+import { ZombieAIComponent } from '../components/ZombieAIComponent.js';
+import { TurretAIComponent } from '../components/TurretAIComponent.js';
 
 /**
  * Processes entities with a DamageQueueComponent.
@@ -63,11 +65,17 @@ export class CombatSystem extends System {
                     health.hp = 0;
                     health.isAlive = false;
                     
-                    // Notify scene of zombie death to reward player
-                    if (scene && scene.onZombieKilled) {
-                        // In pure ECS we'd verify a ZombieTag component.
-                        // Here we assume if it yields a reward, it's an enemy.
-                        scene.onZombieKilled();
+                    // Notify scene of entity death
+                    if (scene) {
+                        const isZombie = this.world.hasComponent(entityId, ZombieAIComponent);
+                        if (isZombie && scene.onZombieKilled) {
+                            scene.onZombieKilled();
+                        }
+
+                        const isTurret = this.world.hasComponent(entityId, TurretAIComponent);
+                        if (isTurret && scene.onTurretDestroyed) {
+                            scene.onTurretDestroyed(entityId);
+                        }
                     }
 
                     // Visual cleanup: destroy rendered sprite

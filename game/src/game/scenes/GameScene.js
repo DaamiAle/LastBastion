@@ -786,6 +786,17 @@ export class GameScene extends Scene {
         this.survivorDeaths++;
     }
 
+    onTurretDestroyed(entityId) {
+        for (const slot of this.slots) {
+            if (slot.turret === entityId) {
+                slot.turret = null;
+                slot.redraw(false);
+                this.pushMessage('¡Una torreta ha sido destruida!');
+                break;
+            }
+        }
+    }
+
     updateHud() {
         for (const slot of this.slots) {
             let matchesType = false;

@@ -47,11 +47,24 @@ export class AttackState extends State {
             return;
         }
         
-        const targetX = target.container ? target.container.x : target.x;
-        const targetY = target.container ? target.container.y : target.y;
+        let targetX, targetY, targetRadius = 0;
+        if (typeof target === 'number') {
+            const targetTransform = this.world.getComponent(target, Transform);
+            if (targetTransform) {
+                targetX = targetTransform.x;
+                targetY = targetTransform.y;
+                targetRadius = config.turrets?.baseRadius ?? 18;
+            } else {
+                targetX = transform.x;
+                targetY = transform.y;
+            }
+        } else {
+            targetX = target.container ? target.container.x : target.x;
+            targetY = target.container ? target.container.y : target.y;
+            targetRadius = target.radius ?? 0;
+        }
 
         const distSq = distanceSq(transform.x, transform.y, targetX, targetY);
-        const targetRadius = target.radius ?? 0;
         const engageRange = ai.attackRange + targetRadius;
 
         // Tolerance for leaving attack range

@@ -39,7 +39,7 @@ export const GAME_CONFIG = {
     waves: {
         initialWave: 1, // Número de la primera oleada
         initialDelayMs: 20000, // Tiempo de paz inicial antes de que arranque la oleada 1
-        delayBetweenWavesMs: 30000, // Tiempo de descanso entre oleada y oleada
+        delayBetweenWavesMs: 20000, // Tiempo de descanso entre oleada y oleada
         spawnIntervalMs: 1000 / 60, // Intervalo de spawn de enemigos (60 veces por segundo aprox)
         firstSpawnDelayMs: 100, // Demora inicial para el primer spawn
         fibonacciMultiplier: 100 // Multiplicador de dificultad/cantidad de enemigos basado en secuencia de Fibonacci
