@@ -4,29 +4,57 @@ import { clamp } from '../../engine/utils/Utils.js';
 import { assembleBullet } from '../assemblers/BulletAssembler.js';
 import { SoundManager } from '../../engine/utils/SoundManager.js';
 
+/**
+ * Representa a la entidad del personaje jugable.
+ * Maneja el input del jugador para movimiento, disparos, restricciones de colisión y salud.
+ */
 export class PlayerEntity extends Entity {
+    /**
+     * @param {Object} scene Referencia a la escena activa
+     * @param {number} x Coordenada inicial X mundial
+     * @param {number} y Coordenada inicial Y mundial
+     */
     constructor(scene, x, y) {
         super(scene);
 
         const config = scene.game.config.player;
 
+        /** @type {string} */
         this.type = 'player';
+        /** @type {number} */
         this.radius = config.radius;
+        /** @type {number} */
         this.health = config.maxHealth;
+        /** @type {number} */
         this.maxHealth = config.maxHealth;
+        /** @type {number} Base movement speed */
         this.baseSpeed = config.speed;
+        /** @type {number} Range within which the player can build turrets */
         this.buildRange = config.buildRange;
+        /** @type {number} Maximum shooting distance */
         this.attackRange = config.attackRange;
+        /** @type {number} Time between consecutive shots */
         this.fireCooldown = config.fireCooldownMs;
+        /** @type {number} Timer to enforce fire cooldown */
         this.fireTimer = 0;
+        /** @type {boolean} Flag indicating if player is dead (respawning) */
         this.isDead = false;
+        /** @type {boolean} Indicates if player can receive damage */
         this.canTakeDamage = true;
+        
+        /** @type {number} Current X velocity */
         this.vx = 0;
+        /** @type {number} Current Y velocity */
         this.vy = 0;
+        /** @type {number} World X coordinate */
         this.x = x;
+        /** @type {number} World Y coordinate */
         this.y = y;
     }
 
+    /**
+     * Inicializa los sprites visuales del jugador (animaciones y sombra).
+     */
     enter() {
         super.enter();
 
@@ -58,6 +86,10 @@ export class PlayerEntity extends Entity {
         this.container.zIndex = 5;
     }
 
+    /**
+     * Procesa los inputs del jugador, aplica físicas, verifica límites y dispara.
+     * @param {Object} delta Objeto de diferencia de tiempo
+     */
     update(delta) {
         if (this.isDead) {
             this.health += (this.maxHealth / 30000) * delta.deltaMS;
@@ -139,6 +171,10 @@ export class PlayerEntity extends Entity {
         }
     }
 
+    /**
+     * Dispara un proyectil hacia las coordenadas objetivo.
+     * @param {{x: number, y: number}} targetPoint Las coordenadas a las que disparar
+     */
     shootAt(targetPoint) {
         if (this.fireTimer > 0) return;
 
@@ -179,6 +215,10 @@ export class PlayerEntity extends Entity {
         );
     }
 
+    /**
+     * Resta salud al jugador.
+     * @param {number} amount Cantidad de daño recibido
+     */
     takeDamage(amount) {
         if (this.isDead) return;
         

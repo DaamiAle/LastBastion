@@ -3,7 +3,14 @@ import { Health } from '../components/Health.js';
 import { SpriteComponent } from '../components/SpriteComponent.js';
 import { Container, Sprite } from 'pixi.js';
 
+/**
+ * Handles rendering of dynamic health bars floating above entities.
+ */
 export class HealthBarSystem extends System {
+    /**
+     * @param {Object} world The ECS World
+     * @param {Object} sceneManager Reference to the SceneManager
+     */
     constructor(world, sceneManager) {
         super(world);
         this.sceneManager = sceneManager;

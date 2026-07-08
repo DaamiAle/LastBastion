@@ -2,7 +2,13 @@ import { System } from '../../engine/ecs/System.js';
 import { Transform } from '../components/Transform.js';
 import { SpriteComponent } from '../components/SpriteComponent.js';
 
+/**
+ * Synchronizes the visual container positions (PixiJS) with the logical Transform coordinates.
+ */
 export class RenderSystem extends System {
+    /**
+     * @param {Object} delta Time delta object
+     */
     update(delta) {
         const entities = this.world.getEntitiesWith(Transform, SpriteComponent);
         for (const entityId of entities) {

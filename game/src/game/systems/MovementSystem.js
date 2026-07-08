@@ -4,12 +4,23 @@ import { Velocity } from '../components/Velocity.js';
 import { BoidComponent } from '../components/BoidComponent.js';
 import { TurretAIComponent } from '../components/TurretAIComponent.js';
 
+/**
+ * Updates positions of all entities with a Velocity component.
+ * Applies basic flocking behaviors for Boids (zombies) and handles building collisions.
+ */
 export class MovementSystem extends System {
+    /**
+     * @param {Object} world The ECS World
+     * @param {Object} sceneManager Reference to the SceneManager
+     */
     constructor(world, sceneManager) {
         super(world);
         this.sceneManager = sceneManager;
     }
 
+    /**
+     * @param {Object} delta Time delta object
+     */
     update(delta) {
         const dt = delta.deltaMS / 1000;
         
@@ -46,13 +57,13 @@ export class MovementSystem extends System {
             transform.x += velocity.dx * velocity.speed * dt;
             transform.y += velocity.dy * velocity.speed * dt;
             
-            // Aplicar colisiones con edificios solo a los zombies (Boids)
+            // Apply collisions with buildings only for zombies (Boids)
             if (this.world.hasComponent(entityId, BoidComponent)) {
                 // Fortress Collision
                 const scene = this.sceneManager?.currentScene;
                 if (scene && scene.fortress && scene.fortress.hp > 0) {
-                    // La base visual es 432x432 escalada a 0.6 = ~260, su radio visual ronda los 130.
-                    // Añadimos ~16 para tener en cuenta el radio físico del zombie.
+                    // The visual base is 432x432 scaled to 0.6 = ~260, visual radius is ~130.
+                    // We add ~16 to account for the physical radius of the zombie.
                     const minDistance = 146;
                     const dx = transform.x - scene.fortress.container.x;
                     const dy = transform.y - scene.fortress.container.y;
@@ -71,7 +82,7 @@ export class MovementSystem extends System {
                         const dx = transform.x - slot.container.x;
                         const dy = transform.y - slot.container.y;
                         const distance = Math.hypot(dx, dy) || 0.0001;
-                        // Los slots miden 40x40 (radio 20). Sumamos el radio del zombie (16) + padding (8).
+                        // Slots are 40x40 (radius 20). Add zombie radius (16) + padding (8).
                         const minDistance = 20 + 24;
 
                         if (distance < minDistance) {

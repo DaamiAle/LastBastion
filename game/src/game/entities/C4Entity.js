@@ -6,23 +6,44 @@ import { ZombieAIComponent } from '../components/ZombieAIComponent.js';
 import { Health } from '../components/Health.js';
 import { DamageQueueComponent } from '../components/DamageQueueComponent.js';
 
+/**
+ * Represents a legacy/simple C4 explosive entity. 
+ * Might be deprecated in favor of ExplosiveEntity.
+ */
 export class C4Entity extends Entity {
+    /**
+     * @param {Object} scene Reference to the active scene
+     * @param {number} x World X coordinate
+     * @param {number} y World Y coordinate
+     * @param {string} mode e.g., 'timer' or remote detonated
+     */
     constructor(scene, x, y, mode) {
         super(scene);
+        /** @type {string} */
         this.type = "c4";
 
+        /** @type {number} */
         this.x = x;
+        /** @type {number} */
         this.y = y;
 
+        /** @type {string} */
         this.mode = mode;
+        /** @type {boolean} */
         this.isAlive = true;
 
+        /** @type {number} */
         this.radius = 128;
 
+        /** @type {boolean} */
         this.isTimer = mode == "timer";
+        /** @type {number} */
         this.timer = this.isTimer ? 10000 : 0;
     }
 
+    /**
+     * Creates simple graphics.
+     */
     enter() {
         super.enter();
 
@@ -36,6 +57,9 @@ export class C4Entity extends Entity {
         this.container.y = this.y;
     }
 
+    /**
+     * @param {Object} delta Time delta object
+     */
     update(delta) {
         if (this.isTimer) {
             this.timer -= delta.deltaMS;
@@ -46,6 +70,9 @@ export class C4Entity extends Entity {
         }
     }
 
+    /**
+     * Deals massive damage to zombies in radius and destroys self.
+     */
     explode() {
         const radiusSq = this.radius * this.radius;
         this.renderExplode();
@@ -75,18 +102,21 @@ export class C4Entity extends Entity {
         this.isAlive = false;
     }
 
+    /**
+     * Renders a basic expanding red circle.
+     */
     renderExplode() {
         const explosion = new Graphics()
             .circle(0, 0, this.radius)
             .fill(0xff0000, 0.1);
 
-        // 🔥 posicionar el objeto, no el dibujo
+        // Position the object, not the drawing
         explosion.x = this.container.x;
         explosion.y = this.container.y;
 
         this.scene.game.app.stage.addChild(explosion);
 
-        // animar y eliminar
+        // animate and remove
         const animDuration = 500; // ms
         let elapsed = 0;
 

@@ -5,36 +5,63 @@ import { Health } from '../components/Health.js';
 import { Transform } from '../components/Transform.js';
 import { SoundManager } from '../../engine/utils/SoundManager.js';
 
+/**
+ * Representa la base central principal que el jugador debe proteger.
+ * Se comporta de manera similar a una torreta pero es una entidad clásica en lugar de una del ECS.
+ */
 export class FortressEntity extends Entity {
+    /**
+     * @param {Object} scene Referencia a la escena activa
+     * @param {number} x Coordenada X mundial
+     * @param {number} y Coordenada Y mundial
+     */
     constructor(scene, x, y) {
         super(scene);
 
         const config = scene.game.config.fortress;
 
+        /** @type {string} */
         this.type = 'fortress';
+        /** @type {number} */
         this.radius = config.radius;
+        /** @type {number} */
         this.maxHp = config.maxHealth;
+        /** @type {number} */
         this.hp = this.maxHp;
+        /** @type {number} */
         this.regenRate = config.regenRate;
+        /** @type {number} */
         this.attackRange = config.attackRange;
+        /** @type {number} */
         this.fireRate = config.fireRateMs;
+        /** @type {number} */
         this.fireTimer = 0;
+        /** @type {number} */
         this.damage = config.damage;
+        /** @type {number} */
         this.level = 1;
+        /** @type {{damage: number, range: number, cadence: number}} */
         this.upgradeLevels = {
             damage: 0,
             range: 0,
             cadence: 0
         };
+        /** @type {number} */
         this.upgradeCost = config.upgradeBaseCost;
+        /** @type {boolean} */
         this.canTakeDamage = true;
+        /** @type {number} */
         this.x = x;
+        /** @type {number} */
         this.y = y;
 
         this.addTag('target');
         this.addTag('static');
     }
 
+    /**
+     * Inicializa la representación visual de la fortaleza (base y cabeza de torreta).
+     */
     enter() {
         super.enter();
 
@@ -66,6 +93,10 @@ export class FortressEntity extends Entity {
         this.container.zIndex = 4;
     }
 
+    /**
+     * Aplica daño a la fortaleza.
+     * @param {number} amount Cantidad de daño recibido
+     */
     takeDamage(amount) {
         this.hp -= amount;
         this.applyFlash(true);
@@ -75,6 +106,10 @@ export class FortressEntity extends Entity {
         }
     }
 
+    /**
+     * Autorregenera salud y maneja el objetivo de la IA y los disparos para su torreta integrada.
+     * @param {Object} delta Objeto de diferencia de tiempo
+     */
     update(delta) {
         const dt = delta.deltaMS / 1000;
         const config = this.scene.game.config.fortress;
@@ -87,8 +122,9 @@ export class FortressEntity extends Entity {
 
         this.fireTimer -= delta.deltaMS;
 
+        // Verify existing target is still valid
         if (this.target) {
-            if (typeof this.target === 'number') {
+            if (typeof this.target === 'number') { // ECS entity
                 const targetHealth = this.scene.game.world.getComponent(this.target, Health);
                 const targetTransform = this.scene.game.world.getComponent(this.target, Transform);
                 if (!targetHealth || !targetHealth.isAlive || !targetTransform) {
@@ -100,7 +136,7 @@ export class FortressEntity extends Entity {
                         this.target = null;
                     }
                 }
-            } else {
+            } else { // Classic entity
                 if (!this.target.isAlive) {
                     this.target = null;
                 } else {
@@ -113,10 +149,12 @@ export class FortressEntity extends Entity {
             }
         }
         
+        // Find a new target if needed
         if (!this.target) {
             this.target = this.scene.findNearestEnemy(this.container.x, this.container.y, this.attackRange);
         }
 
+        // Aim and shoot
         if (this.target) {
             let targetX, targetY;
             if (typeof this.target === 'number') {
@@ -167,16 +205,27 @@ export class FortressEntity extends Entity {
         this.applyFlash(false);
     }
 
+    /**
+     * Dispara un destello visual al ser golpeada.
+     * @param {boolean} active 
+     */
     applyFlash(active) {
         this.base.alpha = active ? 0.45 : 1;
     }
 
+    /**
+     * Mejora una estadística específica de la fortaleza.
+     * @param {string} stat 'damage', 'range', o 'cadence'
+     */
     upgrade(stat) {
         this.upgradeLevels[stat] += 1;
         this.level = 1 + this.getTotalUpgradeCount();
         this.applyUpgradeStats();
     }
 
+    /**
+     * Recalcula las estadísticas basándose en los niveles de mejora.
+     */
     applyUpgradeStats() {
         const config = this.scene.game.config.fortress;
 
@@ -188,16 +237,29 @@ export class FortressEntity extends Entity {
         );
     }
 
+    /**
+     * Calcula el costo actual de la siguiente mejora.
+     * @param {string} stat 
+     * @returns {number} Costo en monedas
+     */
     getUpgradeCost(stat) {
         const config = this.scene.game.config.fortress;
         const total = this.getTotalUpgradeCount();
-        return Math.round(config.upgradeBaseCost * (1 + (total) * config.upgradeCostPerLevel));
+        return Math.round(config.upgradeBaseCost * Math.pow(1 + config.upgradeCostPerLevel, total));
     }
 
+    /**
+     * Devuelve el número total de mejoras aplicadas.
+     * @returns {number}
+     */
     getTotalUpgradeCount() {
         return this.upgradeLevels.damage + this.upgradeLevels.range + this.upgradeLevels.cadence;
     }
 
+    /**
+     * Obtiene una cadena de resumen formateada de las estadísticas de la fortaleza.
+     * @returns {string}
+     */
     getStatsSummary() {
         return `Dmg ${this.damage} | Rng ${this.attackRange} | Cad ${Math.round(this.fireRate)}ms`;
     }

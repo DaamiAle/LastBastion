@@ -1,3 +1,7 @@
+/**
+ * Constantes de configuración global para el juego.
+ * Usado para ajustar el balance del gameplay, economía, atributos, etc.
+ */
 export const GAME_CONFIG = {
     // Configuración general de la aplicación PixiJS
     app: {

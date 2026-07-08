@@ -4,6 +4,10 @@ import { Velocity } from '../components/Velocity.js';
 import { SpriteComponent } from '../components/SpriteComponent.js';
 import { ProjectileComponent } from '../components/ProjectileComponent.js';
 
+/**
+ * @param {number} [options.splashRadius=0] Area of effect radius (0 = single target)
+ * @returns {number} The newly created ECS entity ID
+ */
 export function assembleBullet(scene, x, y, dirX, dirY, options = {}) {
     const world = scene.game.world;
     const entityId = world.createEntity();

@@ -1,17 +1,27 @@
-﻿import { Container, Graphics, Text } from 'pixi.js';
+import { Container, Graphics, Text } from 'pixi.js';
 
+/**
+ * Botón de interfaz de usuario genérico y reutilizable.
+ */
 export class Button extends Container {
+    /**
+     * @param {Object} options Objeto de opciones
+     * @param {string} options.text Texto de la etiqueta
+     * @param {number} [options.width=300] Ancho del botón
+     * @param {number} [options.height=50] Alto del botón
+     * @param {Function} options.onClick Función a ejecutar al hacer clic
+     */
     constructor({ text, width = 300, height = 50, onClick }) {
         super();
 
         this.onClick = onClick;
 
-        // fondo
+        // Background
         this.bg = new Graphics()
             .rect(-width / 2, -height / 2, width, height)
             .fill(0x333333);
 
-        // texto
+        // Label
         this.label = new Text({
             text,
             style: {
@@ -25,7 +35,7 @@ export class Button extends Container {
         this.addChild(this.bg);
         this.addChild(this.label);
 
-        // interacción
+        // Interactivity
         this.eventMode = 'static';
         this.cursor = 'pointer';
 

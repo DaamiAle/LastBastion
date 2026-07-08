@@ -18,6 +18,10 @@ import { ExplosionEffectEntity } from '../entities/ExplosionEffectEntity.js';
 import { MainMenuScene } from './MainMenuScene.js';
 import { SoundManager } from '../../engine/utils/SoundManager.js';
 
+/**
+ * La escena principal de juego.
+ * Gestiona el mundo ECS, spawn de entidades, lógica de oleadas y el HUD central.
+ */
 export class GameScene extends Scene {
     constructor(game, options = {}) {
         super(game);
@@ -132,6 +136,9 @@ export class GameScene extends Scene {
         this.container.addChild(dangerRing);
     }
 
+    /**
+     * @param {Object} delta Objeto de diferencia de tiempo
+     */
     update(delta) {
         this.handleInput();
         this.updateWaveSpawner(delta);

@@ -3,7 +3,14 @@ import { Scene } from '../../engine/core/Scene.js';
 import { Button } from '../../ui/Button.js';
 import { GameScene } from './GameScene.js';
 
+/**
+ * Escena del menú principal mostrada al iniciar el juego.
+ * Maneja la creación de un nuevo juego, carga de partidas y visualización de puntuaciones.
+ */
 export class MainMenuScene extends Scene {
+    /**
+     * Inicializa la interfaz de usuario y construye los elementos del menú.
+     */
     enter() {
         super.enter();
 
@@ -44,6 +51,13 @@ export class MainMenuScene extends Scene {
         });
     }
 
+    /**
+     * Ayudante para crear botones de menú.
+     * @param {string} text Etiqueta del botón
+     * @param {number} x Posición X
+     * @param {number} y Posición Y
+     * @param {Function} onClick Función al hacer clic
+     */
     addButton(text, x, y, onClick) {
         const btn = new Button({ text, onClick });
 
@@ -53,6 +67,9 @@ export class MainMenuScene extends Scene {
         this.ui.addChild(btn);
     }
 
+    /**
+     * Renderiza un overlay modal con los datos locales de puntuaciones.
+     */
     showHighScores() {
         if (this.hsContainer) return;
 
@@ -121,6 +138,9 @@ export class MainMenuScene extends Scene {
         this.container.addChild(this.hsContainer);
     }
 
+    /**
+     * Limpieza
+     */
     exit() {
         super.exit();
         this.ui = null;

@@ -1,7 +1,14 @@
 import { Container, Graphics, Sprite, Text, ColorMatrixFilter } from 'pixi.js';
 import { SoundManager } from '../engine/utils/SoundManager.js';
 
+/**
+ * Interfaz gráfica principal (HUD) para la escena del juego.
+ */
 export class HUD {
+    /**
+     * @param {Object} game La instancia principal del juego
+     * @param {Function} onAction Función para enviar eventos del HUD a la escena
+     */
     constructor(game, onAction) {
         this.game = game;
         this.onAction = onAction;
@@ -226,6 +233,10 @@ export class HUD {
         this._buildVolumeMenu();
     }
 
+    /**
+     * Analiza el estado actual del juego y actualiza los elementos visuales del HUD.
+     * @param {Object} data Datos enviados desde GameScene
+     */
     update(data) {
         const width = this.game.app.renderer.width;
         const height = this.game.app.renderer.height;

@@ -4,12 +4,23 @@ import { ChaseState } from './ChaseState.js';
 import { ZombieAIComponent } from '../components/ZombieAIComponent.js';
 import { Transform } from '../components/Transform.js';
 
+/**
+ * Initial or standby state for a zombie.
+ * Transitions to ChaseState once stimulus is processed.
+ */
 export class IdleState extends State {
+    /**
+     * @param {number} owner Entity ID
+     * @param {Object} world The ECS World
+     */
     constructor(owner, world) {
         super(owner);
         this.world = world;
     }
 
+    /**
+     * @param {Object} delta Time delta object
+     */
     update() {
         const entityId = this.owner;
         const ai = this.world.getComponent(entityId, ZombieAIComponent);

@@ -8,6 +8,13 @@ import { ZombieAIComponent } from '../components/ZombieAIComponent.js';
 import { FSM } from '../../engine/core/FSM.js';
 import { IdleState } from '../states/IdleState.js';
 
+/**
+ * Genera una entidad ECS zombie y configura sus componentes físicos y de combate.
+ * @param {Object} scene La escena activa del juego
+ * @param {number} x Coordenada de aparición X en el mundo
+ * @param {number} y Coordenada de aparición Y en el mundo
+ * @returns {number} El ID de la entidad ECS del zombie
+ */
 export function assembleZombie(scene, x, y) {
     const world = scene.game.world;
     const config = scene.game.config.zombies;

@@ -5,10 +5,21 @@ import { Transform } from '../components/Transform.js';
 import { Health } from '../components/Health.js';
 import { DamageQueueComponent } from '../components/DamageQueueComponent.js';
 
+/**
+ * Maneja diferentes tipos de explosivos ('c4', 'landmine', 'timebomb').
+ */
 export class ExplosiveEntity extends Entity {
+    /**
+     * @param {Object} scene Referencia a la escena activa
+     * @param {number} x Coordenada X mundial
+     * @param {number} y Coordenada Y mundial
+     * @param {string} type El tipo de explosivo ('c4', 'landmine', 'timebomb')
+     */
     constructor(scene, x, y, type) {
         super(scene);
+        /** @type {string} */
         this.type = type;
+        /** @type {Object} */
         this.config = scene.game.config.explosives[type];
         
         this.sprite = new Sprite(scene.game.assets.explosivePlantedTexture);
@@ -16,18 +27,29 @@ export class ExplosiveEntity extends Entity {
         this.sprite.scale.set(0.26); // ~31px in world for the 122x122 texture
         this.container.addChild(this.sprite);
 
+        /** @type {number} */
         this.x = x;
+        /** @type {number} */
         this.y = y;
         this.container.x = x;
         this.container.y = y;
         
+        /** @type {boolean} */
         this.isAlive = true;
+        /** @type {boolean} */
         this.detonated = false;
 
+        /** @type {number} */
         this.timer = 0;
+        /** @type {boolean} */
         this.beepPlayed = false;
     }
 
+    /**
+     * Un dispositivo explosivo colocado por el jugador en el suelo.
+     * Maneja lógicas de temporizador o detonador y aplica daño de área al explotar.
+     * @param {Object} dt Objeto de diferencia de tiempo
+     */
     update(dt) {
         if (!this.isAlive || this.detonated) return;
 
@@ -80,6 +102,9 @@ export class ExplosiveEntity extends Entity {
         }
     }
 
+    /**
+     * Dispara la explosión del dispositivo, aplicando daño a los enemigos cercanos.
+     */
     detonate() {
         if (this.detonated) return;
         this.detonated = true;
