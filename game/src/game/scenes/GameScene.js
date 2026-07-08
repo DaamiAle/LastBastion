@@ -174,7 +174,7 @@ export class GameScene extends Scene {
         }
 
         highscores.push(stats);
-        
+
         highscores.sort((a, b) => {
             if (b.wave !== a.wave) return b.wave - a.wave;
             return b.zombiesKilled - a.zombiesKilled;
@@ -182,7 +182,7 @@ export class GameScene extends Scene {
 
         highscores = highscores.slice(0, 10);
         localStorage.setItem(scoresKey, JSON.stringify(highscores));
-        
+
         // Remove current save if any since we lost
         localStorage.removeItem(this.game.config.saves.slot);
 
@@ -244,7 +244,7 @@ export class GameScene extends Scene {
 
             this.resources -= selectedConfig.cost;
             slot.turret = assembleTurret(this, slot, this.selectedTurretType);
-            
+
             // Re-insert slot into grid? Turrets are static so maybe not needed, but for nearest enemy it is.
             this.grid.insert(slot.turret, slot.container.x, slot.container.y);
 
@@ -262,7 +262,7 @@ export class GameScene extends Scene {
 
         const refund = getTurretSellValue(this.game.world, this.game.config, slot.turret);
         this.resources += refund;
-        
+
         const spriteComp = this.game.world.getComponent(slot.turret, SpriteComponent);
         if (spriteComp && spriteComp.container) {
             spriteComp.container.destroy({ children: true });
@@ -270,7 +270,7 @@ export class GameScene extends Scene {
         }
 
         this.game.world.destroyEntity(slot.turret);
-        
+
         slot.turret = null;
         slot.redraw(false);
         this.pushMessage(`Torreta vendida por $${refund}.`);
@@ -426,10 +426,10 @@ export class GameScene extends Scene {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `bastion_save_wave_${state.wave}.json`;
+        a.download = `bastion_save_wave_${state.wave - 1}.json`;
         a.click();
         URL.revokeObjectURL(url);
-        
+
         this.pushMessage('Partida guardada y descargada.');
     }
 
@@ -509,14 +509,14 @@ export class GameScene extends Scene {
         this.spawnTimer = waves.firstSpawnDelayMs;
 
         this.resources += economy.waveStartRewardBase + Math.floor(this.wave * economy.waveStartRewardPerWave);
-        
+
         this.waveBannerTimer = this.game.config.ui.waveBannerDurationMs;
         if (this.wave > 1) {
             this.pushMessage(`Oleada ${this.wave - 1} iniciada.`);
             const waveSoundId = Math.random() < 0.5 ? 1 : 2;
             SoundManager.play(`zombie_wave_${waveSoundId}`, { volume: 0.8 });
         }
-        
+
         this.persistProgress();
     }
 
@@ -591,7 +591,7 @@ export class GameScene extends Scene {
                 const ai = this.game.world.getComponent(entity, ZombieAIComponent);
                 const health = this.game.world.getComponent(entity, Health);
                 const transform = this.game.world.getComponent(entity, Transform);
-                
+
                 if (!ai || !health || !health.isAlive || !transform) continue;
 
                 const distSq = distanceSq(x, y, transform.x, transform.y);
@@ -777,7 +777,7 @@ export class GameScene extends Scene {
 
     onZombieKilled() {
         const economy = this.game.config.economy;
-        
+
         this.zombiesKilled++;
         this.resources += economy.killReward;
     }
@@ -944,7 +944,7 @@ export class GameScene extends Scene {
         return ['cadence', 'damage', 'range'].map((stat) => {
             let labelText = '';
             let disabled = false;
-            
+
             if (typeof target === 'number') {
                 const ai = this.game.world.getComponent(target, TurretAIComponent);
                 if (ai && ai.upgradeLevels[stat] >= 10) {
@@ -1057,7 +1057,7 @@ export class GameScene extends Scene {
                         upgradeTurret(this.game.world, this.game.config.turrets, slot.turret, 'damage');
                     }
                 }
-                
+
                 if (savedTurret.health !== undefined) {
                     const health = this.game.world.getComponent(slot.turret, Health);
                     if (health) health.hp = savedTurret.health;
