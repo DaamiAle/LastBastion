@@ -5,12 +5,22 @@ import { AimComponent } from '../components/AimComponent.js';
 import { assembleBullet } from '../assemblers/BulletAssembler.js';
 import { SoundManager } from '../../engine/utils/SoundManager.js';
 
+/**
+ * Handles target acquisition, aiming, and firing for turret entities.
+ */
 export class TurretAISystem extends System {
+    /**
+     * @param {Object} world The ECS World
+     * @param {Object} sceneManager Reference to the SceneManager
+     */
     constructor(world, sceneManager) {
         super(world);
         this.sceneManager = sceneManager; 
     }
 
+    /**
+     * @param {Object} delta Time delta object
+     */
     update(delta) {
         const scene = this.sceneManager.currentScene;
         if (!scene) return;
@@ -23,9 +33,15 @@ export class TurretAISystem extends System {
             
             ai.fireTimer -= delta.deltaMS;
 
-            // Validación de objetivo (muerto o fuera de rango)
-            if (ai.target && !ai.target.isAlive) {
-                ai.target = null;
+            // Target validation (check if dead or out of range)
+            if (ai.target !== null) {
+                if (typeof ai.target === 'number') {
+                    if (!this.world.hasEntity(ai.target)) {
+                        ai.target = null;
+                    }
+                } else if (!ai.target.isAlive) {
+                    ai.target = null;
+                }
             }
             if (ai.target) {
                 let targetX, targetY;
@@ -49,7 +65,7 @@ export class TurretAISystem extends System {
                 }
             }
             
-            // Buscar nuevo objetivo
+            // Find new target
             if (!ai.target) {
                 ai.target = scene.findNearestEnemy(transform.x, transform.y, ai.range);
             }
@@ -75,12 +91,12 @@ export class TurretAISystem extends System {
             const angle = Math.atan2(dy, dx);
             const len = Math.hypot(dx, dy) || 1;
 
-            // Apuntar cañón
+            // Aim barrel
             if (aim.barrelSprite) {
                 aim.barrelSprite.rotation = angle + Math.PI * 0.5;
             }
             
-            // Disparar
+            // Shoot
             if (ai.fireTimer <= 0) {
                 ai.fireTimer = ai.fireRate;
                 

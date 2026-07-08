@@ -3,7 +3,14 @@ import { Scene } from '../../engine/core/Scene.js';
 import { Button } from '../../ui/Button.js';
 import { GameScene } from './GameScene.js';
 
+/**
+ * Escena del menú principal mostrada al iniciar el juego.
+ * Maneja la creación de un nuevo juego, carga de partidas y visualización de puntuaciones.
+ */
 export class MainMenuScene extends Scene {
+    /**
+     * Inicializa la interfaz de usuario y construye los elementos del menú.
+     */
     enter() {
         super.enter();
 
@@ -17,8 +24,26 @@ export class MainMenuScene extends Scene {
             this.game.sceneManager.change(new GameScene(this.game));
         });
 
-        this.addButton('Continuar', centerX, 300, () => {
-            this.game.sceneManager.change(new GameScene(this.game, { loadSave: true }));
+        this.addButton('Cargar', centerX, 300, () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        this.game.sceneManager.change(new GameScene(this.game, { loadSave: true, saveData: data }));
+                    } catch (error) {
+                        console.error('Error parseando partida:', error);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
         });
 
         this.addButton('Puntuaciones', centerX, 400, () => {
@@ -26,6 +51,13 @@ export class MainMenuScene extends Scene {
         });
     }
 
+    /**
+     * Ayudante para crear botones de menú.
+     * @param {string} text Etiqueta del botón
+     * @param {number} x Posición X
+     * @param {number} y Posición Y
+     * @param {Function} onClick Función al hacer clic
+     */
     addButton(text, x, y, onClick) {
         const btn = new Button({ text, onClick });
 
@@ -35,6 +67,9 @@ export class MainMenuScene extends Scene {
         this.ui.addChild(btn);
     }
 
+    /**
+     * Renderiza un overlay modal con los datos locales de puntuaciones.
+     */
     showHighScores() {
         if (this.hsContainer) return;
 
@@ -103,6 +138,9 @@ export class MainMenuScene extends Scene {
         this.container.addChild(this.hsContainer);
     }
 
+    /**
+     * Limpieza
+     */
     exit() {
         super.exit();
         this.ui = null;

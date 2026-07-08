@@ -1,3 +1,7 @@
+/**
+ * Constantes de configuración global para el juego.
+ * Usado para ajustar el balance del gameplay, economía, atributos, etc.
+ */
 export const GAME_CONFIG = {
     // Configuración general de la aplicación PixiJS
     app: {
@@ -115,8 +119,8 @@ export const GAME_CONFIG = {
         rangeScalePerLevel: 0.08, // Mejora porcentual del rango por nivel
         cadenceScalePerLevel: 0.08, // Factor de escalado extra de la cadencia
         scale: 0.6, // Escala visual del sprite del bastión
-        upgradeBaseCost: 90, // Costo de la primera mejora del bastión
-        upgradeCostPerLevel: 70, // Aumento del costo por cada nivel extra comprado
+        upgradeBaseCost: 100, // Costo de la primera mejora del bastión
+        upgradeCostPerLevel: 0.35, // Aumento porcentual del costo por cada nivel extra comprado (ej. 0.2 = 20%)
         turretVisualScale: 2, // Escala visual exclusiva del cañón del bastión
         noise: {
             radius: 320, // Radio de sonido de sus disparos
@@ -176,7 +180,7 @@ export const GAME_CONFIG = {
         damageScalePerLevel: 0.2, // Aumento del % de daño por nivel
         fireRateScalePerLevel: 0.35, // Aumento del % de cadencia por nivel
         upgradeCostBase: 1, // Multiplicador base de la fórmula de mejora
-        upgradeCostPerLevel: 0.15, // Factor encarecedor por cada mejora previa comprada
+        upgradeCostPerLevel: 0.45, // Factor encarecedor por cada mejora previa comprada
         noiseRadiusScalePerLevel: 0.06, // Expansión del área de ruido por nivel
         //scalePerLevel: 0.06, // Aumento del tamaño del sprite al mejorarse
         // Tipos de Torreta

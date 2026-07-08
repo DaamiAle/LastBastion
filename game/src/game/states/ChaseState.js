@@ -5,12 +5,23 @@ import { ZombieAIComponent } from '../components/ZombieAIComponent.js';
 import { Transform } from '../components/Transform.js';
 import { BoidComponent } from '../components/BoidComponent.js';
 
+/**
+ * The pursuing/chasing state for a zombie.
+ * Handled within the FSM, targets players, buildings, or noises.
+ */
 export class ChaseState extends State {
+    /**
+     * @param {number} owner Entity ID
+     * @param {Object} world The ECS World
+     */
     constructor(owner, world) {
         super(owner);
         this.world = world;
     }
 
+    /**
+     * @param {Object} delta Time delta object
+     */
     update(delta) {
         const entityId = this.owner;
         const ai = this.world.getComponent(entityId, ZombieAIComponent);

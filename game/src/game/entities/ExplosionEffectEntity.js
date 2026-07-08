@@ -1,7 +1,16 @@
 import { Sprite } from 'pixi.js';
 import { Entity } from '../../engine/core/Entity.js';
 
+/**
+ * Un efecto visual que muestra una breve explosión en una ubicación.
+ */
 export class ExplosionEffectEntity extends Entity {
+    /**
+     * @param {Object} scene Referencia a la escena activa
+     * @param {number} x Coordenada X mundial de la explosión
+     * @param {number} y Coordenada Y mundial de la explosión
+     * @param {number} radius El radio (tamaño) del efecto de explosión
+     */
     constructor(scene, x, y, radius) {
         super(scene);
         this.sprite = new Sprite(scene.game.assets.explosionTexture);
@@ -19,10 +28,17 @@ export class ExplosionEffectEntity extends Entity {
         this.container.y = y;
         this.container.zIndex = 10;
         this.isAlive = true;
+        
+        /** @type {number} Tiempo transcurrido desde la aparición */
         this.timer = 0;
+        /** @type {number} Duración total del efecto en ms */
         this.duration = 400; // ms
     }
 
+    /**
+     * Anima el desvanecimiento y la escala de la explosión con el tiempo.
+     * @param {Object} dt Objeto de delta de tiempo
+     */
     update(dt) {
         if (!this.isAlive) return;
 

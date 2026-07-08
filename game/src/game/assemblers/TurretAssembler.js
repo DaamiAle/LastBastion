@@ -5,6 +5,13 @@ import { SpriteComponent } from '../components/SpriteComponent.js';
 import { TurretAIComponent } from '../components/TurretAIComponent.js';
 import { AimComponent } from '../components/AimComponent.js';
 
+/**
+ * Crea y registra una nueva entidad de torreta en el ECS en un espacio (slot) especificado.
+ * @param {Object} scene La escena activa del juego
+ * @param {Object} slot La entidad TurretSlotEntity donde construir
+ * @param {string} turretType 'machinegun', 'cannon', o 'sniper'
+ * @returns {number} El ID de la entidad ECS recién creada
+ */
 export function assembleTurret(scene, slot, turretType) {
     const world = scene.game.world;
     const config = scene.game.config.turrets;
@@ -66,6 +73,12 @@ export function assembleTurret(scene, slot, turretType) {
     return entityId;
 }
 
+/**
+ * Re-evalúa y aplica mejoras estadísticas y visuales a una torreta en base a su nivel actual.
+ * @param {Object} world Instancia del ECS World
+ * @param {Object} config Objeto de configuración de torretas
+ * @param {number} entityId ID de entidad ECS de la torreta
+ */
 function applyTurretConfig(world, config, entityId) {
     const ai = world.getComponent(entityId, TurretAIComponent);
     const health = world.getComponent(entityId, Health);
@@ -103,6 +116,13 @@ function applyTurretConfig(world, config, entityId) {
     }
 }
 
+/**
+ * Incrementa el nivel de mejora de una torreta para una estadística específica y aplica los cambios.
+ * @param {Object} world Instancia del ECS World
+ * @param {Object} config Objeto de configuración de torretas
+ * @param {number} entityId ID de entidad ECS de la torreta
+ * @param {string} stat 'damage', 'range', o 'cadence'
+ */
 export function upgradeTurret(world, config, entityId, stat) {
     const ai = world.getComponent(entityId, TurretAIComponent);
     const health = world.getComponent(entityId, Health);
@@ -118,6 +138,14 @@ export function upgradeTurret(world, config, entityId, stat) {
     applyTurretConfig(world, config, entityId);
 }
 
+/**
+ * Calcula el costo actual para la siguiente mejora de una estadística específica.
+ * @param {Object} world Instancia del ECS World
+ * @param {Object} config Objeto de configuración de torretas
+ * @param {number} entityId ID de entidad ECS de la torreta
+ * @param {string} stat La estadística a mejorar
+ * @returns {number} Costo en monedas
+ */
 export function getTurretUpgradeCost(world, config, entityId, stat) {
     const ai = world.getComponent(entityId, TurretAIComponent);
     if (!ai) return 0;
@@ -125,15 +153,28 @@ export function getTurretUpgradeCost(world, config, entityId, stat) {
     const base = config.types[ai.turretType];
     const totalUpgrades = ai.upgradeLevels.damage + ai.upgradeLevels.range + ai.upgradeLevels.cadence;
     
-    return Math.round(base.cost * (config.upgradeCostBase + (totalUpgrades) * config.upgradeCostPerLevel));
+    return Math.round(base.cost * config.upgradeCostBase * Math.pow(1 + config.upgradeCostPerLevel, totalUpgrades));
 }
 
+/**
+ * Calcula el valor total de reembolso al vender una torreta.
+ * @param {Object} world Instancia del ECS World
+ * @param {Object} gameConfig Objeto de configuración global del juego
+ * @param {number} entityId ID de entidad ECS de la torreta
+ * @returns {number} Valor de reembolso en monedas
+ */
 export function getTurretSellValue(world, gameConfig, entityId) {
     const ai = world.getComponent(entityId, TurretAIComponent);
     if (!ai) return 0;
     return Math.round(ai.invested * gameConfig.economy.sellRefundRatio);
 }
 
+/**
+ * Genera un resumen formateado de las estadísticas de combate actuales de la torreta.
+ * @param {Object} world Instancia del ECS World
+ * @param {number} entityId ID de entidad ECS de la torreta
+ * @returns {string} Ej. "Dmg 25 | Rng 300 | Cad 600ms"
+ */
 export function getTurretStatsSummary(world, entityId) {
     const ai = world.getComponent(entityId, TurretAIComponent);
     if (!ai) return '';

@@ -1,10 +1,19 @@
 import { Container, Graphics, Sprite, Text, ColorMatrixFilter } from 'pixi.js';
+import { SoundManager } from '../engine/utils/SoundManager.js';
 
+/**
+ * Interfaz gráfica principal (HUD) para la escena del juego.
+ */
 export class HUD {
+    /**
+     * @param {Object} game La instancia principal del juego
+     * @param {Function} onAction Función para enviar eventos del HUD a la escena
+     */
     constructor(game, onAction) {
         this.game = game;
         this.onAction = onAction;
         this.container = new Container();
+        this.container.sortableChildren = true;
         this.contextButtons = [];
         this.specRows = [];
         this.contextSignature = '';
@@ -221,8 +230,13 @@ export class HUD {
         this.container.addChild(this.rightBar);
         
         this._buildOptionsMenu();
+        this._buildVolumeMenu();
     }
 
+    /**
+     * Analiza el estado actual del juego y actualiza los elementos visuales del HUD.
+     * @param {Object} data Datos enviados desde GameScene
+     */
     update(data) {
         const width = this.game.app.renderer.width;
         const height = this.game.app.renderer.height;
@@ -316,8 +330,8 @@ export class HUD {
 
     _buildOptionsMenu() {
         this.optionsContainer = new Container();
+        this.optionsContainer.zIndex = 100;
         this.optionsContainer.visible = false;
-        this.optionsContainer.zIndex = 200;
 
         const overlay = new Graphics().rect(0, 0, 1280, 720).fill({ color: 0x000000, alpha: 0.6 });
         overlay.eventMode = 'static';
@@ -376,10 +390,10 @@ export class HUD {
         btnClose.on('pointerdown', () => this.toggleOptionsMenu());
         menuBox.addChild(btnClose);
 
-        menuBox.addChild(buildOptionButton('Guardar', -60, () => this.onAction({ kind: 'options', action: 'save' })));
-        menuBox.addChild(buildOptionButton('Volumen', -5, () => this.onAction({ kind: 'options', action: 'volume' })));
-        menuBox.addChild(buildOptionButton('Menú Principal', 50, () => this.onAction({ kind: 'options', action: 'mainmenu' })));
-        menuBox.addChild(buildOptionButton('Salir', 105, () => this.onAction({ kind: 'options', action: 'exit' })));
+        menuBox.addChild(buildOptionButton('Volver', -60, () => this.toggleOptionsMenu()));
+        menuBox.addChild(buildOptionButton('Guardar', -5, () => this.onAction({ kind: 'options', action: 'save' })));
+        menuBox.addChild(buildOptionButton('Volumen', 50, () => this.toggleVolumeMenu()));
+        menuBox.addChild(buildOptionButton('Abandonar', 105, () => this.onAction({ kind: 'options', action: 'surrender' })));
 
         this.optionsContainer.addChild(menuBox);
         this.container.addChild(this.optionsContainer);
@@ -393,6 +407,121 @@ export class HUD {
             this.onAction({ kind: 'time', action: 'play' });
         }
     }
+
+    _buildVolumeMenu() {
+        this.volumeContainer = new Container();
+        this.volumeContainer.zIndex = 200;
+        this.volumeContainer.visible = false;
+        
+        const overlay = new Graphics()
+            .rect(0, 0, 1280, 720)
+            .fill({ color: 0x000000, alpha: 0.8 });
+        
+        overlay.eventMode = 'static';
+        this.volumeContainer.addChild(overlay);
+
+        const menuBox = new Container();
+        menuBox.x = 640;
+        menuBox.y = 360;
+
+        const bg = new Graphics()
+            .roundRect(-200, -180, 400, 360, 16)
+            .fill(0x1e293b)
+            .stroke({ color: 0x0ea5e9, width: 4 });
+        menuBox.addChild(bg);
+
+        const title = new Text({
+            text: 'Volumen',
+            style: { fill: 0xffffff, fontSize: 32, fontWeight: 'bold' }
+        });
+        title.anchor.set(0.5);
+        title.y = -135;
+        menuBox.addChild(title);
+
+        const makeSlider = (labelStr, yPos, initialValue, onChange) => {
+            const label = new Text({ text: labelStr, style: { fill: 0xffffff, fontSize: 20 } });
+            label.anchor.set(0.5);
+            label.y = yPos - 30;
+            menuBox.addChild(label);
+
+            const track = new Graphics().roundRect(-100, yPos, 200, 10, 5).fill(0x0f172a);
+            const thumb = new Graphics().circle(0, yPos + 5, 12).fill(0x38bdf8);
+            
+            menuBox.addChild(track);
+            menuBox.addChild(thumb);
+
+            track.eventMode = 'static';
+            thumb.eventMode = 'static';
+            track.cursor = 'pointer';
+            thumb.cursor = 'pointer';
+
+            const minX = -100;
+            const maxX = 100;
+            thumb.x = minX + (maxX - minX) * initialValue;
+
+            let isDragging = false;
+            
+            const updateValue = (xPos) => {
+                const clamped = Math.max(minX, Math.min(maxX, xPos));
+                thumb.x = clamped;
+                onChange((clamped - minX) / (maxX - minX));
+            };
+
+            const onPointerDown = (e) => {
+                isDragging = true;
+                updateValue(menuBox.toLocal(e.global).x);
+            };
+
+            const onPointerMove = (e) => {
+                if (!isDragging) return;
+                updateValue(menuBox.toLocal(e.global).x);
+            };
+
+            const onPointerUp = () => {
+                isDragging = false;
+            };
+
+            track.on('pointerdown', onPointerDown);
+            thumb.on('pointerdown', onPointerDown);
+            overlay.on('pointermove', onPointerMove);
+            overlay.on('pointerup', onPointerUp);
+            overlay.on('pointerupoutside', onPointerUp);
+        };
+
+        makeSlider('Música', -30, SoundManager.musicVolume, (val) => {
+            SoundManager.setMusicVolume(val);
+        });
+
+        makeSlider('Efectos', 60, SoundManager.fxVolume, (val) => {
+            SoundManager.setFxVolume(val);
+        });
+
+        // Close button
+        const btnClose = new Container();
+        btnClose.eventMode = 'static';
+        btnClose.cursor = 'pointer';
+        
+        const closeBg = new Graphics().roundRect(-60, -20, 120, 40, 8).fill(0x334155);
+        const closeText = new Text({ text: 'Volver', style: { fill: 0xffffff, fontSize: 18 } });
+        closeText.anchor.set(0.5);
+        
+        btnClose.addChild(closeBg);
+        btnClose.addChild(closeText);
+        btnClose.y = 130;
+        
+        btnClose.on('pointerover', () => closeBg.clear().roundRect(-60, -20, 120, 40, 8).fill(0x475569));
+        btnClose.on('pointerout', () => closeBg.clear().roundRect(-60, -20, 120, 40, 8).fill(0x334155));
+        btnClose.on('pointerdown', () => this.toggleVolumeMenu());
+        menuBox.addChild(btnClose);
+
+        this.volumeContainer.addChild(menuBox);
+        this.container.addChild(this.volumeContainer);
+    }
+
+    toggleVolumeMenu() {
+        this.volumeContainer.visible = !this.volumeContainer.visible;
+    }
+
 
     drawRangeIndicator(anchor, radius) {
         this.rangeIndicator.clear();

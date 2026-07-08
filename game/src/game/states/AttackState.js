@@ -7,7 +7,15 @@ import { Transform } from '../components/Transform.js';
 import { SoundManager } from '../../engine/utils/SoundManager.js';
 import { DamageQueueComponent } from '../components/DamageQueueComponent.js';
 
+/**
+ * The attacking state for a zombie.
+ * Handled within the FSM of the zombie, triggers damage periodically on the target.
+ */
 export class AttackState extends State {
+    /**
+     * @param {number} owner Entity ID
+     * @param {Object} world The ECS World
+     */
     constructor(owner, world) {
         super(owner);
         this.world = world;
@@ -20,6 +28,9 @@ export class AttackState extends State {
         }
     }
 
+    /**
+     * @param {Object} delta Time delta object
+     */
     update(delta) {
         const entityId = this.owner;
         const ai = this.world.getComponent(entityId, ZombieAIComponent);
@@ -30,6 +41,7 @@ export class AttackState extends State {
         const config = ai.scene.game.config.zombies;
         const target = ai.target;
 
+        // Validation: No target or target is dead
         if (!target || target.isAlive === false) {
             ai.fsm.change(new ChaseState(entityId, this.world));
             return;
@@ -42,6 +54,7 @@ export class AttackState extends State {
         const targetRadius = target.radius ?? 0;
         const engageRange = ai.attackRange + targetRadius;
 
+        // Tolerance for leaving attack range
         if (distSq > engageRange * engageRange * config.attackExitRangeMultiplier) {
             ai.fsm.change(new ChaseState(entityId, this.world));
             return;
@@ -51,6 +64,7 @@ export class AttackState extends State {
         if (ai.attackTimer <= 0) {
             ai.attackTimer = ai.attackCooldown;
 
+            // Apply damage based on target type
             if (ai.target.type === 'fortress') {
                 ai.target.hp -= ai.damage;
                 SoundManager.play('zombie_attack');
