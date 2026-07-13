@@ -6,6 +6,7 @@ import { ZombieAIComponent } from '../components/ZombieAIComponent.js';
 import { Transform } from '../components/Transform.js';
 import { SoundManager } from '../../engine/utils/SoundManager.js';
 import { DamageQueueComponent } from '../components/DamageQueueComponent.js';
+import { Health } from '../components/Health.js';
 
 /**
  * El estado de ataque para un zombie.

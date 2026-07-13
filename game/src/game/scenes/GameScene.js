@@ -172,10 +172,14 @@ export class GameScene extends Scene {
             
             if (tex === this.game.assets.envRock || tex === this.game.assets.envRocks) {
                 if (!this.environmentObstacles) this.environmentObstacles = [];
+                
+                const isBigRock = tex === this.game.assets.envRock;
+                const baseRadius = isBigRock ? 128 : 65;
+
                 this.environmentObstacles.push({
                     x: x,
                     y: y,
-                    radius: 40 * propScale
+                    radius: baseRadius * propScale
                 });
             }
         }
