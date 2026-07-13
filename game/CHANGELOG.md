@@ -35,6 +35,7 @@ Rama actual donde se realizó la migración del juego completo y los toques fina
   - Modales visuales (Volumen, Menú de Pausa) ordenados mediante **zIndex** para siempre superponerse al juego y evitar que se bloqueen.
   - Corrección de bugs como sprites "fantasma" de torretas vendidas, y objetivos parpadeantes de torretas al disparar.
   - Documentación integral mediante **JSDoc** para todos los sistemas y entidades construidas.
+  - Implementación completa del algoritmo **Boids (Flocking)** para movimiento orgánico de enjambre utilizando la partición espacial `SpatialHashGrid`.
 
 ---
 

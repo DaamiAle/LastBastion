@@ -25,20 +25,86 @@ export class MovementSystem extends System {
         const dt = delta.deltaMS / 1000;
         
         // 1. Procesar Boids
+        const scene = this.sceneManager?.currentScene;
         const boidEntities = this.world.getEntitiesWith(Transform, Velocity, BoidComponent);
+        
         for (const entityId of boidEntities) {
             const transform = this.world.getComponent(entityId, Transform);
             const velocity = this.world.getComponent(entityId, Velocity);
             const boid = this.world.getComponent(entityId, BoidComponent);
             
-            // (El procesamiento de la bandada se expandirá aquí comprobando vecinos en el SpatialHashGrid)
+            let sepDx = 0, sepDy = 0;
+            let aliDx = 0, aliDy = 0;
+            let cohDx = 0, cohDy = 0;
+            let neighborCount = 0;
+
+            if (scene && boid.flockRadius > 0) {
+                const neighbors = scene.grid.queryRadius(transform.x, transform.y, boid.flockRadius);
+                
+                for (const neighborId of neighbors) {
+                    if (neighborId === entityId) continue;
+                    
+                    // Solo considerar otros Boids en el sistema ECS
+                    if (typeof neighborId === 'number' && this.world.hasComponent(neighborId, BoidComponent)) {
+                        const nTransform = this.world.getComponent(neighborId, Transform);
+                        const nVelocity = this.world.getComponent(neighborId, Velocity);
+                        
+                        if (!nTransform || !nVelocity) continue;
+
+                        const dx = transform.x - nTransform.x;
+                        const dy = transform.y - nTransform.y;
+                        const distSq = dx * dx + dy * dy;
+                        const radiusSq = boid.flockRadius * boid.flockRadius;
+
+                        if (distSq > 0 && distSq < radiusSq) {
+                            neighborCount++;
+                            
+                            // Separación (pesada inversamente a la distancia)
+                            sepDx += dx / distSq;
+                            sepDy += dy / distSq;
+                            
+                            // Alineación
+                            aliDx += nVelocity.dx;
+                            aliDy += nVelocity.dy;
+                            
+                            // Cohesión
+                            cohDx += nTransform.x;
+                            cohDy += nTransform.y;
+                        }
+                    }
+                }
+                
+                if (neighborCount > 0) {
+                    // Promediar vectores
+                    aliDx /= neighborCount;
+                    aliDy /= neighborCount;
+                    
+                    cohDx = (cohDx / neighborCount) - transform.x;
+                    cohDy = (cohDy / neighborCount) - transform.y;
+                    
+                    // Normalizar vectores resultantes si su longitud > 0
+                    const lenSep = Math.hypot(sepDx, sepDy) || 1;
+                    sepDx /= lenSep; sepDy /= lenSep;
+                    
+                    const lenAli = Math.hypot(aliDx, aliDy) || 1;
+                    aliDx /= lenAli; aliDy /= lenAli;
+                    
+                    const lenCoh = Math.hypot(cohDx, cohDy) || 1;
+                    cohDx /= lenCoh; cohDy /= lenCoh;
+                }
+            }
             
+            // Fuerza directa hacia el objetivo de la IA
             const seekDx = boid.targetDirectionX * boid.seekWeight;
             const seekDy = boid.targetDirectionY * boid.seekWeight;
             
-            // Mezclar
-            velocity.dx = velocity.dx * 0.95 + seekDx * 0.05;
-            velocity.dy = velocity.dy * 0.95 + seekDy * 0.05;
+            // Combinar fuerzas multiplicadas por sus pesos
+            const forceDx = seekDx + (sepDx * boid.separationWeight) + (aliDx * boid.alignmentWeight) + (cohDx * boid.cohesionWeight);
+            const forceDy = seekDy + (sepDy * boid.separationWeight) + (aliDy * boid.alignmentWeight) + (cohDy * boid.cohesionWeight);
+            
+            // Mezclar (Suavizar el cambio de dirección)
+            velocity.dx = velocity.dx * 0.95 + forceDx * 0.05;
+            velocity.dy = velocity.dy * 0.95 + forceDy * 0.05;
             
             const len = Math.hypot(velocity.dx, velocity.dy) || 1;
             velocity.dx /= len;

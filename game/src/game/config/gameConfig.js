@@ -153,11 +153,11 @@ export const GAME_CONFIG = {
         spriteScale: 0.84, // Escala visual para el sprite
         aimRotationOffset: 1.5707963267948966, // Desfase angular (90 grados) para alinear las patas/boca hacia el frente
         // Parámetros de Bandada (Boids Flocking)
-        flockRadius: 96, // Radio en el que perciben a otros zombies vecinos
-        separationWeight: 1.7, // Qué tan fuerte intentan repelerse para no apilarse todos juntos (muy fuerte)
-        alignmentWeight: 0.45, // Qué tanto intentan marchar paralelos (moderado)
-        cohesionWeight: 0.28, // Qué tanto buscan el centro del grupo para hacer manada (bajo)
-        seekWeight: 1, // Fuerza directa hacia su presa objetivo (jugador/base)
+        flockRadius: 180, // Radio aumentado para detectar zombies más lejanos y agruparse
+        separationWeight: 1.4, // Reducido un poco para permitirles estar más juntos sin rebotar tanto
+        alignmentWeight: 1.0, // Aumentado bastante para que viajen en la misma dirección como horda
+        cohesionWeight: 1.5, // Muy aumentado para que tiendan fuertemente al centro de la manada
+        seekWeight: 0.8, // Ligeramente reducido para que agruparse sea más importante que correr directo al objetivo
         // Multiplicadores de estado
         noiseSpeedMultiplier: 1.12, // Aumento de velocidad al perseguir un ruido sospechoso (más rápidos)
         wanderSpeedMultiplier: 0.75, // Reducción de velocidad cuando no tienen objetivo y vagan (más lentos)
