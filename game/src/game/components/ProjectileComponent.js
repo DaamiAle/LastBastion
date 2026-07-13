@@ -1,16 +1,16 @@
 import { Component } from '../../engine/ecs/Component.js';
 
 /**
- * Defines physical and combat properties for projectiles.
+ * Define las propiedades físicas y de combate para los proyectiles.
  */
 export class ProjectileComponent extends Component {
     /**
-     * @param {number} startX The origin X position where the projectile was fired
-     * @param {number} startY The origin Y position where the projectile was fired
-     * @param {number} damage How much health to subtract from the target on hit
-     * @param {number} maxDistance The maximum travel distance before the projectile fizzles out
-     * @param {number} splashRadius If > 0, the projectile damages an area upon impact
-     * @param {number} hitRadius The physical collision radius of the projectile itself
+     * @param {number} startX La posición inicial X donde se disparó el proyectil
+     * @param {number} startY La posición inicial Y donde se disparó el proyectil
+     * @param {number} damage Cuánta salud restar al objetivo al impactar
+     * @param {number} maxDistance La distancia máxima de viaje antes de que el proyectil desaparezca
+     * @param {number} splashRadius Si > 0, el proyectil daña un área al impactar
+     * @param {number} hitRadius El radio de colisión físico del proyectil en sí
      */
     constructor(startX, startY, damage, maxDistance, splashRadius, hitRadius = 2) {
         super();

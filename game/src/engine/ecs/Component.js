@@ -1,6 +1,6 @@
 /**
- * Base class for all ECS Components.
- * Components hold plain data and should ideally contain no logic.
+ * Clase base para todos los Componentes ECS.
+ * Los componentes contienen datos planos e idealmente no deberían contener lógica.
  */
 export class Component {
     constructor() {}

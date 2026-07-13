@@ -1,32 +1,32 @@
 /**
- * A spatial data structure that partitions space into a grid of cells.
- * Used for accelerating 2D proximity queries, like collision detection or AI target finding.
+ * Una estructura de datos espacial que divide el espacio en una cuadrícula (grid) de celdas.
+ * Se utiliza para acelerar las consultas de proximidad 2D, como la detección de colisiones o la búsqueda de objetivos por IA.
  */
 export class SpatialHashGrid {
     /**
-     * @param {number} cellSize The size of each grid square in pixels
+     * @param {number} cellSize El tamaño de cada celda de la cuadrícula en píxeles
      */
     constructor(cellSize) {
-        /** @type {number} The width and height of each grid cell */
+        /** @type {number} El ancho y alto de cada celda de la cuadrícula */
         this.cellSize = cellSize;
         
-        /** @type {Map<string, Set<Object|number>>} Maps a cell key ("x,y") to a set of entities */
+        /** @type {Map<string, Set<Object|number>>} Mapea una clave de celda ("x,y") a un conjunto de entidades */
         this.cells = new Map();
     }
 
     /**
-     * Clears all entities from the grid.
-     * Must be called every frame before re-inserting active entities.
+     * Borra todas las entidades de la cuadrícula.
+     * Debe llamarse en cada fotograma antes de reinsertar las entidades activas.
      */
     clear() {
         this.cells.clear();
     }
 
     /**
-     * Inserts an entity into the cell corresponding to its current coordinates.
-     * @param {Object|number} entity The entity (or entity ID) to insert
-     * @param {number} x The X coordinate of the entity
-     * @param {number} y The Y coordinate of the entity
+     * Inserta una entidad en la celda correspondiente a sus coordenadas actuales.
+     * @param {Object|number} entity La entidad (o ID de entidad) a insertar
+     * @param {number} x La coordenada X de la entidad
+     * @param {number} y La coordenada Y de la entidad
      */
     insert(entity, x, y) {
         const key = this._key(x, y);
@@ -39,12 +39,12 @@ export class SpatialHashGrid {
     }
 
     /**
-     * Retrieves all entities that exist within cells intersecting the given radius.
-     * This returns a broad-phase list of candidates that need exact distance checking.
-     * @param {number} x The X coordinate of the query center
-     * @param {number} y The Y coordinate of the query center
-     * @param {number} radius The query radius in pixels
-     * @returns {Set<Object|number>} A set of potential candidate entities
+     * Recupera todas las entidades que existen dentro de celdas que intersectan el radio dado.
+     * Esto devuelve una lista de candidatos de fase amplia (broad-phase) que necesitan comprobación de distancia exacta.
+     * @param {number} x La coordenada X del centro de consulta
+     * @param {number} y La coordenada Y del centro de consulta
+     * @param {number} radius El radio de consulta en píxeles
+     * @returns {Set<Object|number>} Un conjunto de entidades candidatas potenciales
      */
     queryRadius(x, y, radius) {
         const minX = Math.floor((x - radius) / this.cellSize);
@@ -68,11 +68,11 @@ export class SpatialHashGrid {
     }
 
     /**
-     * Computes the string key for a grid cell based on world coordinates.
+     * Calcula la clave (string key) para una celda de la cuadrícula basándose en las coordenadas del mundo.
      * @private
      * @param {number} x 
      * @param {number} y 
-     * @returns {string} The cell key (e.g., "5,2")
+     * @returns {string} La clave de la celda (ej., "5,2")
      */
     _key(x, y) {
         return `${Math.floor(x / this.cellSize)},${Math.floor(y / this.cellSize)}`;

@@ -27,28 +27,28 @@ export class PlayerEntity extends Entity {
         this.health = config.maxHealth;
         /** @type {number} */
         this.maxHealth = config.maxHealth;
-        /** @type {number} Base movement speed */
+        /** @type {number} Velocidad de movimiento base */
         this.baseSpeed = config.speed;
-        /** @type {number} Range within which the player can build turrets */
+        /** @type {number} Rango dentro del cual el jugador puede construir torretas */
         this.buildRange = config.buildRange;
-        /** @type {number} Maximum shooting distance */
+        /** @type {number} Distancia máxima de disparo */
         this.attackRange = config.attackRange;
-        /** @type {number} Time between consecutive shots */
+        /** @type {number} Tiempo entre disparos consecutivos */
         this.fireCooldown = config.fireCooldownMs;
-        /** @type {number} Timer to enforce fire cooldown */
+        /** @type {number} Temporizador para aplicar el tiempo de recarga del disparo */
         this.fireTimer = 0;
-        /** @type {boolean} Flag indicating if player is dead (respawning) */
+        /** @type {boolean} Indicador de si el jugador está muerto (reapareciendo) */
         this.isDead = false;
-        /** @type {boolean} Indicates if player can receive damage */
+        /** @type {boolean} Indica si el jugador puede recibir daño */
         this.canTakeDamage = true;
         
-        /** @type {number} Current X velocity */
+        /** @type {number} Velocidad actual X */
         this.vx = 0;
-        /** @type {number} Current Y velocity */
+        /** @type {number} Velocidad actual Y */
         this.vy = 0;
-        /** @type {number} World X coordinate */
+        /** @type {number} Coordenada X mundial */
         this.x = x;
-        /** @type {number} World Y coordinate */
+        /** @type {number} Coordenada Y mundial */
         this.y = y;
     }
 
@@ -144,7 +144,7 @@ export class PlayerEntity extends Entity {
 
         if (this.sprite instanceof AnimatedSprite) {
             const currentSpeed = Math.hypot(this.vx, this.vy);
-            const isPhysicallyMoving = currentSpeed > 10; // Umbral minimo para considerar que se mueve
+            const isPhysicallyMoving = currentSpeed > 10; // Umbral mínimo para considerar que se mueve
 
             this.sprite.animationSpeed = isPhysicallyMoving ? config.animationSpeed : 0;
 

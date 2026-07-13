@@ -1,38 +1,38 @@
 /**
- * Handles saving and loading game data to/from the browser's localStorage.
+ * Maneja el guardado y carga de datos del juego hacia/desde el localStorage del navegador.
  */
 export class SaveService {
     /**
-     * @param {string} prefix The namespace prefix for local storage keys
+     * @param {string} prefix El prefijo de espacio de nombres para las claves del local storage
      */
     constructor(prefix = 'last-bastion') {
-        /** @type {string} Prefix string to prevent key collisions */
+        /** @type {string} Cadena de prefijo para prevenir colisiones de claves */
         this.prefix = prefix;
     }
 
     /**
-     * Generates a fully qualified local storage key for a specific save slot.
+     * Genera una clave de local storage totalmente cualificada para un espacio de guardado (slot) específico.
      * @private
-     * @param {string} slot The save slot identifier
-     * @returns {string} The formatted local storage key
+     * @param {string} slot El identificador del espacio de guardado
+     * @returns {string} La clave de local storage formateada
      */
     _key(slot) {
         return `${this.prefix}:${slot}`;
     }
 
     /**
-     * Serializes and saves game data to the specified slot.
-     * @param {string} slot The save slot identifier
-     * @param {Object} data The serializable state object
+     * Serializa y guarda los datos del juego en el espacio especificado.
+     * @param {string} slot El identificador del espacio de guardado
+     * @param {Object} data El objeto de estado serializable
      */
     save(slot, data) {
         localStorage.setItem(this._key(slot), JSON.stringify(data));
     }
 
     /**
-     * Loads and parses game data from the specified slot.
-     * @param {string} slot The save slot identifier
-     * @returns {Object|null} The parsed state object, or null if loading fails or slot doesn't exist
+     * Carga y analiza (parses) los datos del juego desde el espacio especificado.
+     * @param {string} slot El identificador del espacio de guardado
+     * @returns {Object|null} El objeto de estado analizado, o null si falla la carga o el espacio no existe
      */
     load(slot) {
         const raw = localStorage.getItem(this._key(slot));
@@ -47,9 +47,9 @@ export class SaveService {
     }
 
     /**
-     * Checks if a save exists in the specified slot.
-     * @param {string} slot The save slot identifier
-     * @returns {boolean} True if the slot contains data, false otherwise
+     * Comprueba si existe un guardado en el espacio especificado.
+     * @param {string} slot El identificador del espacio de guardado
+     * @returns {boolean} Verdadero si el espacio contiene datos, falso de lo contrario
      */
     exists(slot) {
         return localStorage.getItem(this._key(slot)) !== null;

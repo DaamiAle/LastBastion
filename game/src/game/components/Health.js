@@ -1,21 +1,21 @@
 import { Component } from '../../engine/ecs/Component.js';
 
 /**
- * Component that tracks an entity's health points.
+ * Componente que rastrea los puntos de salud de una entidad.
  */
 export class Health extends Component {
     /**
-     * @param {number} maxHp The maximum and starting health points
+     * @param {number} maxHp Puntos de salud máximos e iniciales
      */
     constructor(maxHp = 100) {
         super();
-        /** @type {number} The maximum health capacity */
+        /** @type {number} La capacidad máxima de salud */
         this.maxHp = maxHp;
         
-        /** @type {number} The current health points */
+        /** @type {number} Los puntos de salud actuales */
         this.hp = maxHp;
         
-        /** @type {boolean} Flag indicating if the entity is still alive */
+        /** @type {boolean} Bandera que indica si la entidad sigue viva */
         this.isAlive = true;
     }
 }

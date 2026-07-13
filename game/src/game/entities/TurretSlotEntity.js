@@ -26,7 +26,7 @@ export class TurretSlotEntity extends Entity {
         /** @type {number} */
         this.radius = scene.game.config.slots.radius;
         
-        /** @type {number|null} ID of the turret entity currently occupying this slot (ECS ID) */
+        /** @type {number|null} ID de la entidad torreta ocupando actualmente este espacio (ECS ID) */
         this.turret = null;
     }
 

@@ -2,39 +2,39 @@ import { Container } from 'pixi.js';
 import { clamp, lerp } from '../utils/Utils.js';
 
 /**
- * Base class for all game scenes. 
- * Manages the display container, classic entities, and camera movement.
+ * Clase base para todas las escenas del juego. 
+ * Maneja el contenedor de visualización, las entidades clásicas, y el movimiento de la cámara.
  */
 export class Scene {
     /**
-     * @param {Object} game Reference to the main Game instance
+     * @param {Object} game Referencia a la instancia principal de Game
      */
     constructor(game) {
-        /** @type {Object} The main game instance */
+        /** @type {Object} La instancia principal del juego */
         this.game = game;
 
-        /** @type {Container|null} The main PixiJS container for this scene */
+        /** @type {Container|null} El contenedor principal de PixiJS para esta escena */
         this.container = null;
         
-        /** @type {Array<Object>} List of classic entities managed by this scene */
+        /** @type {Array<Object>} Lista de entidades clásicas manejadas por esta escena */
         this.entities = [];
         
-        /** @type {Object|null} The entity the camera is currently following */
+        /** @type {Object|null} La entidad que la cámara está siguiendo actualmente */
         this.cameraTarget = null;
         
-        /** @type {number} The interpolation factor for camera movement (0-1) */
+        /** @type {number} El factor de interpolación para el movimiento de la cámara (0-1) */
         this.cameraLerp = 0.1;
         
-        /** @type {number} The total width of the scene's world boundaries */
+        /** @type {number} El ancho total de los límites del mundo de la escena */
         this.worldWidth = 2200;
         
-        /** @type {number} The total height of the scene's world boundaries */
+        /** @type {number} El alto total de los límites del mundo de la escena */
         this.worldHeight = 1400;
     }
 
     /**
-     * Called when the scene becomes active.
-     * Initializes the container and adds it to the stage.
+     * Llamado cuando la escena se vuelve activa.
+     * Inicializa el contenedor y lo añade al escenario (stage).
      */
     enter() {
         this.container = new Container();
@@ -43,8 +43,8 @@ export class Scene {
     }
 
     /**
-     * Registers a classic entity to the scene and calls its enter method.
-     * @param {Object} entity The entity to add
+     * Registra una entidad clásica a la escena y llama a su método enter.
+     * @param {Object} entity La entidad a añadir
      */
     addEntity(entity) {
         this.entities.push(entity);
@@ -52,9 +52,9 @@ export class Scene {
     }
 
     /**
-     * Updates all active entities and the camera.
-     * Cleans up dead entities.
-     * @param {Object} delta Time delta object
+     * Actualiza todas las entidades activas y la cámara.
+     * Limpia las entidades muertas.
+     * @param {Object} delta Objeto de delta de tiempo
      */
     update(delta) {
         for (const entity of this.entities) {
@@ -76,8 +76,8 @@ export class Scene {
     }
 
     /**
-     * Called when the scene is being replaced.
-     * Destroys all entities and cleans up the container.
+     * Llamado cuando la escena está siendo reemplazada.
+     * Destruye todas las entidades y limpia el contenedor.
      */
     exit() {
         for (const entity of this.entities) {
@@ -93,15 +93,15 @@ export class Scene {
     }
 
     /**
-     * Sets the entity that the camera should follow.
-     * @param {Object} entity Target entity to follow
+     * Establece la entidad que la cámara debe seguir.
+     * @param {Object} entity Entidad objetivo a seguir
      */
     setCameraTarget(entity) {
         this.cameraTarget = entity;
     }
 
     /**
-     * Updates the logical boundaries of the scene world.
+     * Actualiza los límites lógicos del mundo de la escena.
      * @param {number} width 
      * @param {number} height 
      */
@@ -111,10 +111,10 @@ export class Scene {
     }
 
     /**
-     * Converts DOM screen coordinates to world/scene coordinates.
+     * Convierte coordenadas de pantalla del DOM a coordenadas del mundo/escena.
      * @param {number} screenX 
      * @param {number} screenY 
-     * @returns {{x: number, y: number}} The coordinates in world space
+     * @returns {{x: number, y: number}} Las coordenadas en el espacio del mundo
      */
     screenToWorld(screenX, screenY) {
         const rect = this.game.app.canvas.getBoundingClientRect();
@@ -130,10 +130,10 @@ export class Scene {
     }
 
     /**
-     * Converts world/scene coordinates to DOM screen coordinates.
+     * Convierte coordenadas del mundo/escena a coordenadas de pantalla del DOM.
      * @param {number} worldX 
      * @param {number} worldY 
-     * @returns {{x: number, y: number}} The coordinates in screen space
+     * @returns {{x: number, y: number}} Las coordenadas en el espacio de la pantalla
      */
     worldToScreen(worldX, worldY) {
         return {
@@ -143,8 +143,8 @@ export class Scene {
     }
 
     /**
-     * Moves the scene container to keep the camera target centered,
-     * applying lerp smoothing and clamping within world bounds.
+     * Mueve el contenedor de la escena para mantener centrado al objetivo de la cámara,
+     * aplicando suavizado (lerp) y limitando (clamping) dentro de los límites del mundo.
      */
     updateCamera() {
         if (!this.container || !this.cameraTarget?.container) return;
@@ -153,7 +153,7 @@ export class Scene {
         const desiredX = renderer.width * 0.5 - this.cameraTarget.container.x;
         const desiredY = renderer.height * 0.5 - this.cameraTarget.container.y;
         
-        // Prevent camera from showing outside world bounds
+        // Evitar que la cámara muestre áreas fuera de los límites del mundo
         const minX = Math.min(0, renderer.width - this.worldWidth);
         const minY = Math.min(0, renderer.height - this.worldHeight);
         

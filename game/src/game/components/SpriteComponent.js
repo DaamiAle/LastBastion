@@ -1,11 +1,11 @@
 import { Component } from '../../engine/ecs/Component.js';
 
 /**
- * Links an ECS entity to its visual representation in PixiJS.
+ * Vincula una entidad del ECS a su representación visual en PixiJS.
  */
 export class SpriteComponent extends Component {
     /**
-     * @param {import('pixi.js').Container} container The root PixiJS container or sprite for this entity
+     * @param {import('pixi.js').Container} container El contenedor o sprite raíz de PixiJS para esta entidad
      */
     constructor(container) {
         super();

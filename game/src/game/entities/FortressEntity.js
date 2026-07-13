@@ -122,9 +122,9 @@ export class FortressEntity extends Entity {
 
         this.fireTimer -= delta.deltaMS;
 
-        // Verify existing target is still valid
+        // Verificar si el objetivo existente sigue siendo válido
         if (this.target) {
-            if (typeof this.target === 'number') { // ECS entity
+            if (typeof this.target === 'number') { // Entidad ECS
                 const targetHealth = this.scene.game.world.getComponent(this.target, Health);
                 const targetTransform = this.scene.game.world.getComponent(this.target, Transform);
                 if (!targetHealth || !targetHealth.isAlive || !targetTransform) {
@@ -136,7 +136,7 @@ export class FortressEntity extends Entity {
                         this.target = null;
                     }
                 }
-            } else { // Classic entity
+            } else { // Entidad clásica
                 if (!this.target.isAlive) {
                     this.target = null;
                 } else {
@@ -149,12 +149,12 @@ export class FortressEntity extends Entity {
             }
         }
         
-        // Find a new target if needed
+        // Buscar un nuevo objetivo si es necesario
         if (!this.target) {
             this.target = this.scene.findNearestEnemy(this.container.x, this.container.y, this.attackRange);
         }
 
-        // Aim and shoot
+        // Apuntar y disparar
         if (this.target) {
             let targetX, targetY;
             if (typeof this.target === 'number') {

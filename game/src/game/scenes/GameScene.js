@@ -183,7 +183,7 @@ export class GameScene extends Scene {
         highscores = highscores.slice(0, 10);
         localStorage.setItem(scoresKey, JSON.stringify(highscores));
 
-        // Remove current save if any since we lost
+        // Eliminar el guardado actual si lo hay, ya que perdimos
         localStorage.removeItem(this.game.config.saves.slot);
 
         this.game.sceneManager.change(new MainMenuScene(this.game));
@@ -245,7 +245,7 @@ export class GameScene extends Scene {
             this.resources -= selectedConfig.cost;
             slot.turret = assembleTurret(this, slot, this.selectedTurretType);
 
-            // Re-insert slot into grid? Turrets are static so maybe not needed, but for nearest enemy it is.
+            // ¿Reinsertar el slot en la cuadrícula (grid)? Las torretas son estáticas, así que tal vez no sea necesario, pero para el enemigo más cercano sí lo es.
             this.grid.insert(slot.turret, slot.container.x, slot.container.y);
 
             slot.redraw(true);
@@ -458,7 +458,7 @@ export class GameScene extends Scene {
                     if (this.spawnEnemy()) {
                         this.spawnQueue--;
                     } else {
-                        break; // fallback if spawn fails
+                        break; // alternativa en caso de que el spawn falle
                     }
                 }
             }
@@ -540,10 +540,10 @@ export class GameScene extends Scene {
     }
 
     getFibonacci(index) {
-        // 1st (index 1) = 0
-        // 2nd (index 2) = 1
-        // 3rd (index 3) = 1
-        // 4th (index 4) = 2
+        // 1ro (index 1) = 0
+        // 2do (index 2) = 1
+        // 3ro (index 3) = 1
+        // 4to (index 4) = 2
         let a = 0;
         let b = 1;
         for (let i = 1; i < index; i++) {

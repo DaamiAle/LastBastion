@@ -1,19 +1,19 @@
 import { Component } from '../../engine/ecs/Component.js';
 
 /**
- * Accumulates damage intended for an entity over the current frame.
- * Processed by the CombatSystem.
+ * Acumula el daño dirigido a una entidad durante el fotograma actual.
+ * Procesado por el CombatSystem.
  */
 export class DamageQueueComponent extends Component {
     constructor() {
         super();
-        /** @type {Array<number>} List of incoming damage amounts for this frame */
+        /** @type {Array<number>} Lista de cantidades de daño entrante para este fotograma */
         this.damages = [];
     }
 
     /**
-     * Queues a damage hit to be processed.
-     * @param {number} amount Amount of damage to apply
+     * Encola un impacto de daño para ser procesado.
+     * @param {number} amount Cantidad de daño a aplicar
      */
     addDamage(amount) {
         this.damages.push(amount);

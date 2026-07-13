@@ -1,22 +1,22 @@
 import { Application } from 'pixi.js';
 
 /**
- * Handles initialization and management of the PixiJS application and canvas.
+ * Maneja la inicialización y administración de la aplicación PixiJS y el canvas.
  */
 export class Renderer {
     /**
-     * @param {Object} config Global game configuration containing app width, height, and color
+     * @param {Object} config Configuración global del juego que contiene el ancho, alto y color de la app
      */
     constructor(config) {
-        /** @type {Application} The core PixiJS Application instance */
+        /** @type {Application} La instancia principal de la Aplicación PixiJS */
         this.app = new Application();
-        /** @type {Object} The configuration object */
+        /** @type {Object} El objeto de configuración */
         this.config = config;
     }
 
     /**
-     * Asynchronously initializes the PixiJS application, sets up the canvas, 
-     * and appends it to the DOM.
+     * Inicializa de manera asíncrona la aplicación PixiJS, configura el canvas, 
+     * y lo adjunta (appends) al DOM.
      * @returns {Promise<void>}
      */
     async init() {
@@ -28,13 +28,13 @@ export class Renderer {
 
         document.body.appendChild(this.app.canvas);
         
-        /** @type {import('pixi.js').Container} Expose the main root stage for easy access */
+        /** @type {import('pixi.js').Container} Expone el escenario raíz (root stage) principal para facilitar el acceso */
         this.stage = this.app.stage;
     }
 
     /**
-     * Helper to get the HTML canvas element.
-     * @returns {HTMLCanvasElement} The underlying canvas element
+     * Ayudante (Helper) para obtener el elemento canvas HTML.
+     * @returns {HTMLCanvasElement} El elemento canvas subyacente
      */
     get canvas() {
         return this.app.canvas;

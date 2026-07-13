@@ -7,15 +7,15 @@ import { Health } from '../components/Health.js';
 import { DamageQueueComponent } from '../components/DamageQueueComponent.js';
 
 /**
- * Represents a legacy/simple C4 explosive entity. 
- * Might be deprecated in favor of ExplosiveEntity.
+ * Representa una entidad de explosivo C4 simple/legado. 
+ * Podría ser obsoleta a favor de ExplosiveEntity.
  */
 export class C4Entity extends Entity {
     /**
-     * @param {Object} scene Reference to the active scene
-     * @param {number} x World X coordinate
-     * @param {number} y World Y coordinate
-     * @param {string} mode e.g., 'timer' or remote detonated
+     * @param {Object} scene Referencia a la escena activa
+     * @param {number} x Coordenada X mundial
+     * @param {number} y Coordenada Y mundial
+     * @param {string} mode ej., 'timer' o detonado remotamente
      */
     constructor(scene, x, y, mode) {
         super(scene);
@@ -42,7 +42,7 @@ export class C4Entity extends Entity {
     }
 
     /**
-     * Creates simple graphics.
+     * Crea gráficos simples.
      */
     enter() {
         super.enter();
@@ -58,7 +58,7 @@ export class C4Entity extends Entity {
     }
 
     /**
-     * @param {Object} delta Time delta object
+     * @param {Object} delta Objeto de delta de tiempo
      */
     update(delta) {
         if (this.isTimer) {
@@ -71,13 +71,13 @@ export class C4Entity extends Entity {
     }
 
     /**
-     * Deals massive damage to zombies in radius and destroys self.
+     * Reparte daño masivo a los zombies en el radio y se destruye a sí misma.
      */
     explode() {
         const radiusSq = this.radius * this.radius;
         this.renderExplode();
         
-        // Use ECS to find zombies
+        // Usar ECS para encontrar zombies
         const world = this.scene.game.world;
         const zombies = world.getEntitiesWith(Transform, ZombieAIComponent, Health);
 
@@ -89,7 +89,7 @@ export class C4Entity extends Entity {
             );
 
             if (d < radiusSq) {
-                // Deal massive damage to kill
+                // Hacer daño masivo para matar
                 let queue = world.getComponent(zId, DamageQueueComponent);
                 if (!queue) {
                     queue = new DamageQueueComponent();
@@ -103,20 +103,20 @@ export class C4Entity extends Entity {
     }
 
     /**
-     * Renders a basic expanding red circle.
+     * Renderiza un círculo rojo básico que se expande.
      */
     renderExplode() {
         const explosion = new Graphics()
             .circle(0, 0, this.radius)
             .fill(0xff0000, 0.1);
 
-        // Position the object, not the drawing
+        // Posicionar el objeto, no el dibujo
         explosion.x = this.container.x;
         explosion.y = this.container.y;
 
         this.scene.game.app.stage.addChild(explosion);
 
-        // animate and remove
+        // Animar y eliminar
         const animDuration = 500; // ms
         let elapsed = 0;
 
@@ -136,4 +136,4 @@ export class C4Entity extends Entity {
         this.scene.game.app.ticker.add(animate);
 
     }
-}
+}

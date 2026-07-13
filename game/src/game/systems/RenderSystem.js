@@ -3,11 +3,11 @@ import { Transform } from '../components/Transform.js';
 import { SpriteComponent } from '../components/SpriteComponent.js';
 
 /**
- * Synchronizes the visual container positions (PixiJS) with the logical Transform coordinates.
+ * Sincroniza las posiciones lógicas del Transform con los contenedores visuales de PixiJS.
  */
 export class RenderSystem extends System {
     /**
-     * @param {Object} delta Time delta object
+     * @param {Object} delta Objeto delta de tiempo
      */
     update(delta) {
         const entities = this.world.getEntitiesWith(Transform, SpriteComponent);

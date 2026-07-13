@@ -1,13 +1,13 @@
 import { Component } from '../../engine/ecs/Component.js';
 
 /**
- * Stores movement properties for an entity.
+ * Almacena las propiedades de movimiento de una entidad.
  */
 export class Velocity extends Component {
     /**
-     * @param {number} dx Normalized X direction vector (-1 to 1)
-     * @param {number} dy Normalized Y direction vector (-1 to 1)
-     * @param {number} speed Magnitude of velocity in pixels per frame
+     * @param {number} dx Vector de dirección X normalizado (-1 a 1)
+     * @param {number} dy Vector de dirección Y normalizado (-1 a 1)
+     * @param {number} speed Magnitud de la velocidad en píxeles por fotograma
      */
     constructor(dx = 0, dy = 0, speed = 0) {
         super();

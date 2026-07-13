@@ -5,8 +5,14 @@ import { SpriteComponent } from '../components/SpriteComponent.js';
 import { ProjectileComponent } from '../components/ProjectileComponent.js';
 
 /**
- * @param {number} [options.splashRadius=0] Area of effect radius (0 = single target)
- * @returns {number} The newly created ECS entity ID
+ * @param {Object} scene La escena activa
+ * @param {number} x Coordenada X
+ * @param {number} y Coordenada Y
+ * @param {number} dirX Dirección X
+ * @param {number} dirY Dirección Y
+ * @param {Object} options Opciones del proyectil
+ * @param {number} [options.splashRadius=0] Radio de área de efecto (0 = un solo objetivo)
+ * @returns {number} El ID de la entidad ECS recién creada
  */
 export function assembleBullet(scene, x, y, dirX, dirY, options = {}) {
     const world = scene.game.world;

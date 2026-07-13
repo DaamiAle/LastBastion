@@ -6,13 +6,13 @@ import { Transform } from '../components/Transform.js';
 import { BoidComponent } from '../components/BoidComponent.js';
 
 /**
- * The pursuing/chasing state for a zombie.
- * Handled within the FSM, targets players, buildings, or noises.
+ * El estado de persecución para un zombie.
+ * Manejado dentro de la FSM, persigue jugadores, edificios o ruidos.
  */
 export class ChaseState extends State {
     /**
-     * @param {number} owner Entity ID
-     * @param {Object} world The ECS World
+     * @param {number} owner ID de la entidad
+     * @param {Object} world El Mundo ECS
      */
     constructor(owner, world) {
         super(owner);
@@ -20,7 +20,7 @@ export class ChaseState extends State {
     }
 
     /**
-     * @param {Object} delta Time delta object
+     * @param {Object} delta Objeto delta de tiempo
      */
     update(delta) {
         const entityId = this.owner;

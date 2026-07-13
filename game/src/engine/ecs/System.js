@@ -1,20 +1,20 @@
 /**
- * Base class for all ECS Systems.
- * Systems implement the logic that processes entities containing specific components.
+ * Clase base para todos los Sistemas ECS.
+ * Los sistemas implementan la lógica que procesa entidades que contienen componentes específicos.
  */
 export class System {
     /**
-     * @param {Object} world Reference to the ECS World managing this system
+     * @param {Object} world Referencia al Mundo (World) ECS que administra este sistema
      */
     constructor(world) {
-        /** @type {Object} The ECS World */
+        /** @type {Object} El Mundo ECS */
         this.world = world;
     }
 
     /**
-     * Called every frame to process entities.
-     * Must be implemented by subclasses.
-     * @param {Object} delta Time delta object
+     * Llamado en cada fotograma para procesar entidades.
+     * Debe ser implementado por las subclases.
+     * @param {Object} delta Objeto que contiene información de tiempo delta
      */
     update(delta) {}
 }

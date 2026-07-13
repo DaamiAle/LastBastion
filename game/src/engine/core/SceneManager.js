@@ -1,23 +1,23 @@
 /**
- * Manages game scenes, enabling safe transitions between them.
+ * Administra las escenas del juego, permitiendo transiciones seguras entre ellas.
  */
 export class SceneManager {
     /**
-     * @param {Object} game Reference to the main Game instance
+     * @param {Object} game Referencia a la instancia principal del juego
      */
     constructor(game) {
-        /** @type {Object} The main game instance */
+        /** @type {Object} La instancia principal del juego */
         this.game = game;
 
-        /** @type {Scene|null} The currently active scene */
+        /** @type {Scene|null} La escena activa actualmente */
         this.current = null;
         
-        /** @type {Scene|null} The pending scene to swap to on the next frame */
+        /** @type {Scene|null} La escena pendiente a cambiar en el siguiente fotograma */
         this.next = null;
     }
 
     /**
-     * Gets the currently active scene.
+     * Obtiene la escena activa actualmente.
      * @returns {Scene|null}
      */
     get currentScene() {
@@ -25,20 +25,20 @@ export class SceneManager {
     }
 
     /**
-     * Requests a scene change. The actual transition occurs safely 
-     * at the start of the next update cycle.
-     * @param {Scene} scene The new scene to transition to
+     * Solicita un cambio de escena. La transición real ocurre de manera segura 
+     * al inicio del siguiente ciclo de actualización.
+     * @param {Scene} scene La nueva escena a la que transicionar
      */
     change(scene) {
         this.next = scene;
     }
 
     /**
-     * Updates the active scene and handles pending scene transitions.
-     * @param {Object} delta Time delta object
+     * Actualiza la escena activa y maneja las transiciones de escena pendientes.
+     * @param {Object} delta Objeto de delta de tiempo
      */
     update(delta) {
-        // Apply scene changes safely before the update logic runs
+        // Aplicar los cambios de escena de manera segura antes de ejecutar la lógica de actualización
         if (this.next) {
             if (this.current) {
                 this.current.exit();

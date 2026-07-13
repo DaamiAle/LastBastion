@@ -1,25 +1,25 @@
 /**
- * The core Entity-Component-System (ECS) World manager.
- * Handles entity creation, component assignment, and system execution.
+ * El administrador (manager) principal del Mundo (World) Entidad-Componente-Sistema (ECS).
+ * Maneja la creación de entidades, asignación de componentes y ejecución de sistemas.
  */
 export class World {
     constructor() {
-        /** @type {Map<number, Map<Function, Object>>} Maps entity IDs to their components */
+        /** @type {Map<number, Map<Function, Object>>} Mapea los IDs de entidad a sus componentes */
         this.entities = new Map();
         
-        /** @type {Array<Object>} List of registered systems */
+        /** @type {Array<Object>} Lista de sistemas registrados */
         this.systems = [];
         
-        /** @type {number} The next available numeric entity ID */
+        /** @type {number} El siguiente ID numérico de entidad disponible */
         this.nextEntityId = 1;
         
-        /** @type {Set<number>} Set of entity IDs queued for destruction at the end of the frame */
+        /** @type {Set<number>} Conjunto de IDs de entidad en cola para destrucción al final del fotograma */
         this.entitiesToDestroy = new Set();
     }
 
     /**
-     * Creates a new entity and returns its unique ID.
-     * @returns {number} The new entity ID
+     * Crea una nueva entidad y devuelve su ID único.
+     * @returns {number} El nuevo ID de entidad
      */
     createEntity() {
         const id = this.nextEntityId++;
@@ -28,26 +28,26 @@ export class World {
     }
 
     /**
-     * Checks whether an entity ID exists in the world and is not queued for destruction.
-     * @param {number} entityId The ID of the entity to check
-     * @returns {boolean} True if the entity exists
+     * Comprueba si un ID de entidad existe en el mundo y no está en cola para destrucción.
+     * @param {number} entityId El ID de la entidad a comprobar
+     * @returns {boolean} Verdadero si la entidad existe
      */
     hasEntity(entityId) {
         return this.entities.has(entityId) && !this.entitiesToDestroy.has(entityId);
     }
 
     /**
-     * Queues an entity for destruction at the end of the current update cycle.
-     * @param {number} entityId The ID of the entity to destroy
+     * Pone una entidad en cola para su destrucción al final del ciclo de actualización actual.
+     * @param {number} entityId El ID de la entidad a destruir
      */
     destroyEntity(entityId) {
         this.entitiesToDestroy.add(entityId);
     }
 
     /**
-     * Adds a component instance to an entity.
-     * @param {number} entityId The target entity ID
-     * @param {Object} component The component instance
+     * Añade una instancia de componente a una entidad.
+     * @param {number} entityId El ID de la entidad objetivo
+     * @param {Object} component La instancia del componente
      */
     addComponent(entityId, component) {
         const components = this.entities.get(entityId);
@@ -57,9 +57,9 @@ export class World {
     }
 
     /**
-     * Removes a specific component type from an entity.
-     * @param {number} entityId The target entity ID
-     * @param {Function} componentClass The class constructor of the component to remove
+     * Elimina un tipo específico de componente de una entidad.
+     * @param {number} entityId El ID de la entidad objetivo
+     * @param {Function} componentClass El constructor de clase del componente a eliminar
      */
     removeComponent(entityId, componentClass) {
         const components = this.entities.get(entityId);
@@ -67,7 +67,7 @@ export class World {
 
         if (components.delete(componentClass)) return;
 
-        // Fallback for minification/bundling mismatch
+        // Alternativa (fallback) para desajuste (mismatch) por minificación/empaquetado
         const keyToDelete = Array.from(components.keys()).find(k => k.name === componentClass.name);
         if (keyToDelete) {
             components.delete(keyToDelete);
@@ -75,10 +75,10 @@ export class World {
     }
 
     /**
-     * Gets a specific component instance from an entity.
-     * @param {number} entityId The entity ID
-     * @param {Function} componentClass The class constructor of the desired component
-     * @returns {Object|undefined} The component instance, or undefined if not found
+     * Obtiene una instancia específica de componente de una entidad.
+     * @param {number} entityId El ID de la entidad
+     * @param {Function} componentClass El constructor de clase del componente deseado
+     * @returns {Object|undefined} La instancia del componente, o indefinido (undefined) si no se encuentra
      */
     getComponent(entityId, componentClass) {
         const components = this.entities.get(entityId);
@@ -91,10 +91,10 @@ export class World {
     }
 
     /**
-     * Checks if an entity possesses a specific component type.
-     * @param {number} entityId The entity ID
-     * @param {Function} componentClass The class constructor to check for
-     * @returns {boolean} True if the entity has the component
+     * Comprueba si una entidad posee un tipo específico de componente.
+     * @param {number} entityId El ID de la entidad
+     * @param {Function} componentClass El constructor de clase a comprobar
+     * @returns {boolean} Verdadero si la entidad tiene el componente
      */
     hasComponent(entityId, componentClass) {
         const components = this.entities.get(entityId);
@@ -104,9 +104,9 @@ export class World {
     }
 
     /**
-     * Queries the world for all entities that possess a given set of components.
-     * @param {...Function} componentClasses A variable number of component class constructors
-     * @returns {Array<number>} An array of matching entity IDs
+     * Consulta al mundo por todas las entidades que poseen un conjunto dado de componentes.
+     * @param {...Function} componentClasses Un número variable de constructores de clase de componentes
+     * @returns {Array<number>} Un array con los IDs de las entidades que coinciden
      */
     getEntitiesWith(...componentClasses) {
         const result = [];
@@ -132,32 +132,32 @@ export class World {
     }
 
     /**
-     * Retrieves a registered system by its class name.
-     * @param {string} systemName The name of the system class
-     * @returns {Object|undefined} The system instance
+     * Recupera un sistema registrado por el nombre de su clase.
+     * @param {string} systemName El nombre de la clase del sistema
+     * @returns {Object|undefined} La instancia del sistema
      */
     getSystem(systemName) {
         return this.systems.find(sys => sys.constructor.name === systemName);
     }
 
     /**
-     * Registers a new system to be executed during the update loop.
-     * @param {Object} system The system instance
+     * Registra un nuevo sistema para ser ejecutado durante el bucle de actualización.
+     * @param {Object} system La instancia del sistema
      */
     addSystem(system) {
         this.systems.push(system);
     }
 
     /**
-     * Executes all registered systems and cleans up destroyed entities.
-     * @param {Object} delta Time delta object
+     * Ejecuta todos los sistemas registrados y limpia (cleanup) las entidades destruidas.
+     * @param {Object} delta Objeto de delta de tiempo
      */
     update(delta) {
         for (const system of this.systems) {
             system.update(delta);
         }
 
-        // Cleanup destroyed entities after all systems have processed
+        // Limpiar las entidades destruidas después de que todos los sistemas las hayan procesado
         for (const entityId of this.entitiesToDestroy) {
             this.entities.delete(entityId);
         }
@@ -165,7 +165,7 @@ export class World {
     }
 
     /**
-     * Wipes all entities from the world. Systems are preserved.
+     * Borra (wipes) todas las entidades del mundo. Los sistemas se conservan.
      */
     clear() {
         this.entities.clear();

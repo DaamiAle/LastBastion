@@ -5,13 +5,13 @@ import { BoidComponent } from '../components/BoidComponent.js';
 import { TurretAIComponent } from '../components/TurretAIComponent.js';
 
 /**
- * Updates positions of all entities with a Velocity component.
- * Applies basic flocking behaviors for Boids (zombies) and handles building collisions.
+ * Actualiza las posiciones de todas las entidades con un componente Velocity.
+ * Aplica comportamientos básicos de bandada para Boids (zombies) y maneja las colisiones con edificios.
  */
 export class MovementSystem extends System {
     /**
-     * @param {Object} world The ECS World
-     * @param {Object} sceneManager Reference to the SceneManager
+     * @param {Object} world El Mundo ECS
+     * @param {Object} sceneManager Referencia al SceneManager
      */
     constructor(world, sceneManager) {
         super(world);
@@ -19,24 +19,24 @@ export class MovementSystem extends System {
     }
 
     /**
-     * @param {Object} delta Time delta object
+     * @param {Object} delta Objeto delta de tiempo
      */
     update(delta) {
         const dt = delta.deltaMS / 1000;
         
-        // 1. Process Boids
+        // 1. Procesar Boids
         const boidEntities = this.world.getEntitiesWith(Transform, Velocity, BoidComponent);
         for (const entityId of boidEntities) {
             const transform = this.world.getComponent(entityId, Transform);
             const velocity = this.world.getComponent(entityId, Velocity);
             const boid = this.world.getComponent(entityId, BoidComponent);
             
-            // (Flock processing will be expanded here by checking neighbors in SpatialHashGrid)
+            // (El procesamiento de la bandada se expandirá aquí comprobando vecinos en el SpatialHashGrid)
             
             const seekDx = boid.targetDirectionX * boid.seekWeight;
             const seekDy = boid.targetDirectionY * boid.seekWeight;
             
-            // Blend
+            // Mezclar
             velocity.dx = velocity.dx * 0.95 + seekDx * 0.05;
             velocity.dy = velocity.dy * 0.95 + seekDy * 0.05;
             
@@ -47,7 +47,7 @@ export class MovementSystem extends System {
             transform.rotation = Math.atan2(velocity.dy, velocity.dx);
         }
 
-        // 2. Apply final velocities
+        // 2. Aplicar velocidades finales
         const entities = this.world.getEntitiesWith(Transform, Velocity);
         for (const entityId of entities) {
             const transform = this.world.getComponent(entityId, Transform);
@@ -57,13 +57,13 @@ export class MovementSystem extends System {
             transform.x += velocity.dx * velocity.speed * dt;
             transform.y += velocity.dy * velocity.speed * dt;
             
-            // Apply collisions with buildings only for zombies (Boids)
+            // Aplicar colisiones con edificios solo para zombies (Boids)
             if (this.world.hasComponent(entityId, BoidComponent)) {
-                // Fortress Collision
+                // Colisión con la Fortaleza
                 const scene = this.sceneManager?.currentScene;
                 if (scene && scene.fortress && scene.fortress.hp > 0) {
-                    // The visual base is 432x432 scaled to 0.6 = ~260, visual radius is ~130.
-                    // We add ~16 to account for the physical radius of the zombie.
+                    // La base visual es de 432x432 escalada a 0.6 = ~260, el radio visual es ~130.
+                    // Sumamos ~16 para tener en cuenta el radio físico del zombie.
                     const minDistance = 146;
                     const dx = transform.x - scene.fortress.container.x;
                     const dy = transform.y - scene.fortress.container.y;
@@ -76,13 +76,13 @@ export class MovementSystem extends System {
                     }
                 }
 
-                // Turret Slots Collision
+                // Colisión con los Espacios (Slots) de Torreta
                 if (scene && scene.slots) {
                     for (const slot of scene.slots) {
                         const dx = transform.x - slot.container.x;
                         const dy = transform.y - slot.container.y;
                         const distance = Math.hypot(dx, dy) || 0.0001;
-                        // Slots are 40x40 (radius 20). Add zombie radius (16) + padding (8).
+                        // Los slots son de 40x40 (radio 20). Sumar radio del zombie (16) + relleno (8).
                         const minDistance = 20 + 24;
 
                         if (distance < minDistance) {

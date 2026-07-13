@@ -16,48 +16,48 @@ import { HealthBarSystem } from '../game/systems/HealthBarSystem.js';
 import { SoundManager } from './utils/SoundManager.js';
 
 /**
- * Main Game class. Bootstraps the engine, initializes core systems (ECS, Renderer, Input),
- * and manages the main game loop.
+ * Clase principal del juego (Game). Inicializa el motor, los sistemas principales (ECS, Renderer, Input),
+ * y maneja el bucle principal del juego.
  */
 export class Game {
     /**
-     * Initializes all the core managers and services before assets are loaded.
+     * Inicializa todos los administradores (managers) y servicios principales antes de que se carguen los recursos (assets).
      */
     constructor() {
-        /** @type {Object} Global configuration object */
+        /** @type {Object} Objeto de configuración global */
         this.config = GAME_CONFIG;
-        /** @type {Time} Time management and delta calculation */
+        /** @type {Time} Administración del tiempo y cálculo del delta */
         this.time = new Time();
-        /** @type {Renderer} PixiJS renderer wrapper */
+        /** @type {Renderer} Envoltorio (wrapper) del renderizador de PixiJS */
         this.renderer = new Renderer(this.config);
-        /** @type {World} Entity-Component-System world */
+        /** @type {World} Mundo (World) del sistema de Entidad-Componente-Sistema (ECS) */
         this.world = new World();
-        /** @type {SceneManager} Manages game states/scenes */
+        /** @type {SceneManager} Maneja los estados del juego/escenas */
         this.sceneManager = new SceneManager(this);
-        /** @type {Input} Handles keyboard and mouse input */
+        /** @type {Input} Maneja las entradas (inputs) del teclado y ratón */
         this.input = new Input();
-        /** @type {SaveService} Handles local storage operations */
+        /** @type {SaveService} Maneja las operaciones de guardado local */
         this.save = new SaveService();
-        /** @type {Object} Loaded game assets (textures, spritesheets, etc) */
+        /** @type {Object} Recursos (assets) del juego cargados (texturas, hojas de sprites, etc) */
         this.assets = {};
     }
 
     /**
-     * Asynchronously loads assets, initializes sound, and prepares the ECS systems.
-     * Starts the main PixiJS ticker loop.
+     * Carga de manera asíncrona los recursos (assets), inicializa el sonido y prepara los sistemas ECS.
+     * Inicia el bucle (loop) principal del ticker de PixiJS.
      * @returns {Promise<void>}
      */
     async init() {
         await this.renderer.init();
         
-        // Expose app for backward compatibility during migration
+        // Exponer la app para retrocompatibilidad durante la migración
         this.app = this.renderer.app; 
 
         SoundManager.init();
         this.assets = await AssetLoader.loadAllAssets();
 
-        // Register ECS Systems
-        // AISystems require a reference to the active scene/sceneManager to query the environment
+        // Registrar sistemas ECS
+        // Los sistemas AISystems requieren una referencia a la escena/administrador de escenas activa para consultar el entorno
         this.world.addSystem(new ZombieAISystem(this.world));
         this.world.addSystem(new TurretAISystem(this.world, this.sceneManager));
         this.world.addSystem(new MovementSystem(this.world, this.sceneManager));
@@ -65,30 +65,30 @@ export class Game {
         this.world.addSystem(new CombatSystem(this.world, this.sceneManager));
         this.world.addSystem(new HealthBarSystem(this.world, this.sceneManager));
         
-        // Render system must run last
+        // El sistema de renderizado (RenderSystem) debe ejecutarse último
         this.world.addSystem(new RenderSystem(this.world));
 
-        // Start the main game loop
+        // Iniciar el bucle principal del juego
         this.renderer.app.ticker.add((ticker) => {
             this.time.update(ticker);
-            // Pass delta down simulating the old PIXI ticker object
+            // Pasar el delta hacia abajo simulando el antiguo objeto ticker de PIXI
             this.update({ deltaMS: this.time.deltaTime });
         });
     }
 
     /**
-     * Main update loop called every frame.
-     * Updates the ECS world, the active scene, and clears frame-specific inputs.
-     * @param {Object} delta Object containing delta time in milliseconds
+     * Bucle de actualización principal (update loop) llamado cada fotograma.
+     * Actualiza el mundo ECS, la escena activa, y restablece las entradas (inputs) específicas del fotograma.
+     * @param {Object} delta Objeto que contiene el tiempo delta (diferencia de tiempo) en milisegundos
      */
     update(delta) {
-        // ECS update loop
+        // Bucle de actualización ECS
         this.world.update(delta);
         
-        // Update active scene logic
+        // Lógica de actualización de la escena activa
         this.sceneManager.update(delta);
         
-        // Reset single-frame input states (e.g., keys pressed this frame)
+        // Restablecer estados de entrada de un solo fotograma (ej. teclas presionadas en este fotograma)
         this.input.endFrame();
     }
 }

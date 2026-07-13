@@ -6,12 +6,12 @@ import { assembleBullet } from '../assemblers/BulletAssembler.js';
 import { SoundManager } from '../../engine/utils/SoundManager.js';
 
 /**
- * Handles target acquisition, aiming, and firing for turret entities.
+ * Maneja la adquisición de objetivos, el apuntado y el disparo de las entidades torreta.
  */
 export class TurretAISystem extends System {
     /**
-     * @param {Object} world The ECS World
-     * @param {Object} sceneManager Reference to the SceneManager
+     * @param {Object} world El Mundo ECS
+     * @param {Object} sceneManager Referencia al SceneManager
      */
     constructor(world, sceneManager) {
         super(world);
@@ -19,7 +19,7 @@ export class TurretAISystem extends System {
     }
 
     /**
-     * @param {Object} delta Time delta object
+     * @param {Object} delta Objeto delta de tiempo
      */
     update(delta) {
         const scene = this.sceneManager.currentScene;
@@ -33,7 +33,7 @@ export class TurretAISystem extends System {
             
             ai.fireTimer -= delta.deltaMS;
 
-            // Target validation (check if dead or out of range)
+            // Validación del objetivo (comprobar si está muerto o fuera de rango)
             if (ai.target !== null) {
                 if (typeof ai.target === 'number') {
                     if (!this.world.hasEntity(ai.target)) {
@@ -65,7 +65,7 @@ export class TurretAISystem extends System {
                 }
             }
             
-            // Find new target
+            // Buscar nuevo objetivo
             if (!ai.target) {
                 ai.target = scene.findNearestEnemy(transform.x, transform.y, ai.range);
             }
@@ -91,12 +91,12 @@ export class TurretAISystem extends System {
             const angle = Math.atan2(dy, dx);
             const len = Math.hypot(dx, dy) || 1;
 
-            // Aim barrel
+            // Apuntar cañón
             if (aim.barrelSprite) {
                 aim.barrelSprite.rotation = angle + Math.PI * 0.5;
             }
             
-            // Shoot
+            // Disparar
             if (ai.fireTimer <= 0) {
                 ai.fireTimer = ai.fireRate;
                 

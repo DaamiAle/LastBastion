@@ -1,22 +1,22 @@
 /**
- * Finite State Machine (FSM) manager.
- * Handles state transitions and propagates update calls to the active state.
+ * Administrador de la Máquina de Estados Finitos (FSM - Finite State Machine).
+ * Maneja las transiciones de estado y propaga las llamadas de actualización al estado activo.
  */
 export class FSM {
     /**
-     * @param {Object} owner The entity or object that owns this FSM
+     * @param {Object} owner La entidad u objeto que posee esta FSM
      */
     constructor(owner) {
-        /** @type {Object} The owner of the FSM context */
+        /** @type {Object} El propietario del contexto de la FSM */
         this.owner = owner;
-        /** @type {State|null} The currently active state */
+        /** @type {State|null} El estado actualmente activo */
         this.current = null;
     }
 
     /**
-     * Changes the current state to a new state.
-     * Calls exit() on the old state and enter() on the new one.
-     * @param {State} state The new state to transition into
+     * Cambia el estado actual a un nuevo estado.
+     * Llama a exit() en el estado antiguo y enter() en el nuevo.
+     * @param {State} state El nuevo estado al que transicionar
      */
     change(state) {
         if (this.current) {
@@ -31,8 +31,8 @@ export class FSM {
     }
 
     /**
-     * Updates the currently active state.
-     * @param {Object} delta Object containing time delta information
+     * Actualiza el estado actualmente activo.
+     * @param {Object} delta Objeto que contiene información de tiempo delta
      */
     update(delta) {
         if (this.current) {

@@ -1,53 +1,53 @@
 import { Container } from 'pixi.js';
 
 /**
- * Base class for classic object-oriented entities (legacy/hybrid system).
- * Each entity manages its own PixiJS container, lifecycle, and tags.
+ * Clase base para entidades clásicas orientadas a objetos (sistema legado/híbrido).
+ * Cada entidad maneja su propio contenedor PixiJS, ciclo de vida y etiquetas (tags).
  */
 export class Entity {
-    /** @type {number} Static counter to assign unique IDs starting from 1 */
+    /** @type {number} Contador estático para asignar IDs únicos empezando desde 1 */
     static nextId = 1;
 
     /**
-     * @param {Object} scene Reference to the scene this entity belongs to
+     * @param {Object} scene Referencia a la escena a la que pertenece esta entidad
      */
     constructor(scene) {
-        /** @type {Object} The scene context */
+        /** @type {Object} El contexto de la escena */
         this.scene = scene;
 
-        /** @type {number} Unique identifier for the entity */
+        /** @type {number} Identificador único para la entidad */
         this.id = Entity.nextId++;
 
-        /** @type {string} Identifier type for the entity */
+        /** @type {string} Tipo de identificador para la entidad */
         this.type = "entity";
         
-        /** @type {Set<string>} Collection of tags for easy querying */
+        /** @type {Set<string>} Colección de etiquetas (tags) para facilitar consultas */
         this.tags = new Set();
 
-        /** @type {Container} PixiJS display container */
+        /** @type {Container} Contenedor de visualización PixiJS */
         this.container = new Container();
 
-        /** @type {boolean} Flag indicating if the entity is currently active */
+        /** @type {boolean} Flag (indicador) que marca si la entidad está activa actualmente */
         this.isAlive = true;
     }
 
     /**
-     * Called when the entity is added to the scene.
-     * Attaches its container to the scene's main container.
+     * Llamado cuando la entidad se añade a la escena.
+     * Adjunta su contenedor al contenedor principal de la escena.
      */
     enter() {
         this.scene.container.addChild(this.container);
     }
 
     /**
-     * Called every frame to update the entity logic.
-     * @param {Object} delta Object containing time delta information
+     * Llamado en cada fotograma para actualizar la lógica de la entidad.
+     * @param {Object} delta Objeto que contiene información de tiempo delta
      */
     update(delta) { }
 
     /**
-     * Destroys the entity, removing its container from the display list
-     * and freeing up associated PixiJS resources.
+     * Destruye la entidad, eliminando su contenedor de la lista de visualización
+     * y liberando los recursos asociados de PixiJS.
      */
     destroy() {
         if (!this.container) return;
@@ -61,17 +61,17 @@ export class Entity {
     }
 
     /**
-     * Adds a categorization tag to the entity.
-     * @param {string} tag The tag to add
+     * Añade una etiqueta (tag) de categorización a la entidad.
+     * @param {string} tag La etiqueta a añadir
      */
     addTag(tag) {
         this.tags.add(tag);
     }
 
     /**
-     * Checks if the entity has a specific tag.
-     * @param {string} tag The tag to check
-     * @returns {boolean} True if the entity has the tag, false otherwise
+     * Comprueba si la entidad tiene una etiqueta (tag) específica.
+     * @param {string} tag La etiqueta a comprobar
+     * @returns {boolean} Verdadero si la entidad tiene la etiqueta, falso de lo contrario
      */
     hasTag(tag) {
         return this.tags.has(tag);

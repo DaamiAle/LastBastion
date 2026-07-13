@@ -8,13 +8,13 @@ import { SoundManager } from '../../engine/utils/SoundManager.js';
 import { DamageQueueComponent } from '../components/DamageQueueComponent.js';
 
 /**
- * The attacking state for a zombie.
- * Handled within the FSM of the zombie, triggers damage periodically on the target.
+ * El estado de ataque para un zombie.
+ * Manejado dentro de la FSM del zombie, activa el daño periódicamente sobre el objetivo.
  */
 export class AttackState extends State {
     /**
-     * @param {number} owner Entity ID
-     * @param {Object} world The ECS World
+     * @param {number} owner ID de la entidad
+     * @param {Object} world El Mundo ECS
      */
     constructor(owner, world) {
         super(owner);
@@ -29,7 +29,7 @@ export class AttackState extends State {
     }
 
     /**
-     * @param {Object} delta Time delta object
+     * @param {Object} delta Objeto delta de tiempo
      */
     update(delta) {
         const entityId = this.owner;
@@ -41,7 +41,7 @@ export class AttackState extends State {
         const config = ai.scene.game.config.zombies;
         const target = ai.target;
 
-        // Validation: No target or target is dead
+        // Validación: Sin objetivo o el objetivo está muerto
         if (!target || target.isAlive === false) {
             ai.fsm.change(new ChaseState(entityId, this.world));
             return;
@@ -67,7 +67,7 @@ export class AttackState extends State {
         const distSq = distanceSq(transform.x, transform.y, targetX, targetY);
         const engageRange = ai.attackRange + targetRadius;
 
-        // Tolerance for leaving attack range
+        // Tolerancia para salir del rango de ataque
         if (distSq > engageRange * engageRange * config.attackExitRangeMultiplier) {
             ai.fsm.change(new ChaseState(entityId, this.world));
             return;
@@ -77,7 +77,7 @@ export class AttackState extends State {
         if (ai.attackTimer <= 0) {
             ai.attackTimer = ai.attackCooldown;
 
-            // Apply damage based on target type
+            // Aplicar daño según el tipo de objetivo
             if (ai.target.type === 'fortress') {
                 ai.target.hp -= ai.damage;
                 SoundManager.play('zombie_attack');

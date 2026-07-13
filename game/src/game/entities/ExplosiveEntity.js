@@ -24,7 +24,7 @@ export class ExplosiveEntity extends Entity {
         
         this.sprite = new Sprite(scene.game.assets.explosivePlantedTexture);
         this.sprite.anchor.set(0.5);
-        this.sprite.scale.set(0.26); // ~31px in world for the 122x122 texture
+        this.sprite.scale.set(0.26); // ~31px en el mundo para la textura de 122x122
         this.container.addChild(this.sprite);
 
         /** @type {number} */
@@ -59,7 +59,7 @@ export class ExplosiveEntity extends Entity {
             const timeRemaining = this.config.fuseMs - this.timer;
             if (timeRemaining > 0) {
                 if (timeRemaining < 400) {
-                    this.sprite.tint = 0xff0000; // Solid red just before detonation
+                    this.sprite.tint = 0xff0000; // Rojo sólido justo antes de la detonación
                 } else {
                     const blinkRate = Math.max(100, (timeRemaining / this.config.fuseMs) * 500);
                     const isBlink = Math.floor(this.timer / blinkRate) % 2 === 0;

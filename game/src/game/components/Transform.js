@@ -1,13 +1,13 @@
 import { Component } from '../../engine/ecs/Component.js';
 
 /**
- * Stores the 2D world position and rotation of an entity.
+ * Almacena la posición 2D en el mundo y la rotación de una entidad.
  */
 export class Transform extends Component {
     /**
-     * @param {number} x The X coordinate
-     * @param {number} y The Y coordinate
-     * @param {number} rotation The rotation in radians
+     * @param {number} x La coordenada X
+     * @param {number} y La coordenada Y
+     * @param {number} rotation La rotación en radianes
      */
     constructor(x = 0, y = 0, rotation = 0) {
         super();

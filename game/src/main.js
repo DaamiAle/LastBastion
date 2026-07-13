@@ -1,6 +1,5 @@
 import './index.css';
 import { Game } from './engine/Game.js';
-import { GameScene } from './game/scenes/GameScene.js';
 import { MainMenuScene } from './game/scenes/MainMenuScene.js';
 
 (async () => {

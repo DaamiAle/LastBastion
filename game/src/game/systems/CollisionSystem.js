@@ -10,14 +10,14 @@ import { distanceSq } from '../../engine/utils/Utils.js';
 import { ExplosionEffectEntity } from '../entities/ExplosionEffectEntity.js';
 
 /**
- * Checks and resolves physical impacts between projectiles and entities (zombies).
- * Uses Continuous Collision Detection (CCD) to prevent high-speed bullets from
- * tunneling through zombies during frame drops.
+ * Comprueba y resuelve los impactos físicos entre proyectiles y entidades (zombies).
+ * Utiliza Detección Continua de Colisiones (CCD) para evitar que balas a gran velocidad
+ * atraviesen a los zombies en caso de caída de fotogramas (frame drops).
  */
 export class CollisionSystem extends System {
     /**
-     * @param {Object} world The ECS World
-     * @param {Object} sceneManager Reference to the SceneManager
+     * @param {Object} world El Mundo ECS
+     * @param {Object} sceneManager Referencia al SceneManager
      */
     constructor(world, sceneManager) {
         super(world);
@@ -25,7 +25,7 @@ export class CollisionSystem extends System {
     }
 
     /**
-     * @param {Object} delta Time delta object
+     * @param {Object} delta Objeto delta de tiempo
      */
     update(delta) {
         const scene = this.sceneManager.currentScene;
@@ -36,7 +36,7 @@ export class CollisionSystem extends System {
 
         this.frameCount = (this.frameCount || 0) + 1;
         if (this.frameCount % 60 === 0) {
-            console.log(`[DEBUG] CollisionSystem TICK. Bullets: ${projectiles.length}, Zombies: ${zombies.length}`);
+            console.log(`[DEBUG] CollisionSystem TICK. Balas: ${projectiles.length}, Zombies: ${zombies.length}`);
         }
 
         for (const projId of projectiles) {
@@ -46,14 +46,14 @@ export class CollisionSystem extends System {
             
             const distSq = distanceSq(pData.startX, pData.startY, pTransform.x, pTransform.y);
             if (distSq > pData.maxDistance * pData.maxDistance) {
-                // Destroy if bullet traveled past its max distance without hitting anything
+                // Destruir si la bala viajó más allá de su distancia máxima sin golpear nada
                 this.destroyProjectile(projId);
                 continue;
             }
 
-            // --- Continuous Collision Detection (CCD) ---
-            // Reconstruct the bullet's position from the previous frame.
-            // This creates a line segment (Vector) between pLast and current pTransform.
+            // --- Detección Continua de Colisiones (CCD) ---
+            // Reconstruye la posición de la bala desde el fotograma anterior.
+            // Esto crea un segmento de línea (Vector) entre pLast y el pTransform actual.
             let pLastX = pTransform.x;
             let pLastY = pTransform.y;
             if (pVelocity) {
@@ -62,7 +62,7 @@ export class CollisionSystem extends System {
                 pLastY = pTransform.y - (pVelocity.dy * pVelocity.speed * dt);
             }
 
-            // Distance squared (line segment length) traveled this frame
+            // Distancia al cuadrado (longitud del segmento de línea) viajada en este fotograma
             const l2 = distanceSq(pLastX, pLastY, pTransform.x, pTransform.y);
 
             let hit = false;
@@ -73,31 +73,31 @@ export class CollisionSystem extends System {
 
                 if (!zHealth.isAlive) continue;
 
-                // Add real zombie size and bullet size to get exact hitbox radius
+                // Sumar el tamaño real del zombie y el tamaño de la bala para obtener el radio de impacto exacto
                 const hitRadius = (zAi.radius ?? 12) + (pData.hitRadius ?? 2);
                 
-                // Math: Shortest distance from the point (zombie center)
-                // to the line segment drawn by the bullet in this frame.
+                // Matemáticas: La distancia más corta desde el punto (centro del zombie)
+                // al segmento de línea trazado por la bala en este fotograma.
                 let colDistSq;
                 if (l2 === 0) {
-                    // If bullet didn't move (e.g. first frame), measure direct distance
+                    // Si la bala no se movió (ej. primer fotograma), medir la distancia directa
                     colDistSq = distanceSq(zTransform.x, zTransform.y, pTransform.x, pTransform.y);
                 } else {
-                    // Scalar projection (t) of zombie center onto line segment
+                    // Proyección escalar (t) del centro del zombie sobre el segmento de línea
                     let t = ((zTransform.x - pLastX) * (pTransform.x - pLastX) + (zTransform.y - pLastY) * (pTransform.y - pLastY)) / l2;
-                    // Clamp (0 to 1) ensures projected point stays within segment bounds
+                    // Limitar (0 a 1) asegura que el punto proyectado se mantenga dentro de los límites del segmento
                     t = Math.max(0, Math.min(1, t));
                     
-                    // Coordinates of nearest point on bullet trajectory
+                    // Coordenadas del punto más cercano en la trayectoria de la bala
                     const projX = pLastX + t * (pTransform.x - pLastX);
                     const projY = pLastY + t * (pTransform.y - pLastY);
                     
-                    // Distance from zombie to intersection point
+                    // Distancia desde el zombie al punto de intersección
                     colDistSq = distanceSq(zTransform.x, zTransform.y, projX, projY);
                 }
 
                 if (colDistSq < hitRadius * hitRadius) {
-                    console.log(`[DEBUG] HIT! Bullet: (${pTransform.x.toFixed(1)}, ${pTransform.y.toFixed(1)}) hit Zombie: (${zTransform.x.toFixed(1)}, ${zTransform.y.toFixed(1)}). DistSq: ${colDistSq.toFixed(1)}, HitRadSq: ${(hitRadius*hitRadius).toFixed(1)}`);
+                    console.log(`[DEBUG] HIT! Bala: (${pTransform.x.toFixed(1)}, ${pTransform.y.toFixed(1)}) golpeó a Zombie: (${zTransform.x.toFixed(1)}, ${zTransform.y.toFixed(1)}). DistSq: ${colDistSq.toFixed(1)}, HitRadSq: ${(hitRadius*hitRadius).toFixed(1)}`);
                     hit = true;
                     
                     if (pData.splashRadius > 0) {
@@ -110,20 +110,20 @@ export class CollisionSystem extends System {
                     this.destroyProjectile(projId);
                     break;
                 } else if (colDistSq < 10000) {
-                    // Debug only: near miss
-                    console.log(`[DEBUG] MISS NEARBY. Bullet: (${pTransform.x.toFixed(1)}, ${pTransform.y.toFixed(1)}) passed near Zombie: (${zTransform.x.toFixed(1)}, ${zTransform.y.toFixed(1)}). DistSq: ${colDistSq.toFixed(1)}, HitRadSq: ${(hitRadius*hitRadius).toFixed(1)}`);
+                    // Solo para debug: fallo por poco
+                    console.log(`[DEBUG] CASI. Bala: (${pTransform.x.toFixed(1)}, ${pTransform.y.toFixed(1)}) pasó cerca de Zombie: (${zTransform.x.toFixed(1)}, ${zTransform.y.toFixed(1)}). DistSq: ${colDistSq.toFixed(1)}, HitRadSq: ${(hitRadius*hitRadius).toFixed(1)}`);
                 }
             }
         }
     }
 
     /**
-     * @param {Object} scene The active scene
-     * @param {number} cx Explosion center X
-     * @param {number} cy Explosion center Y
-     * @param {number} damage Base damage
-     * @param {number} splashRadius Radius of effect
-     * @param {Array<number>} zombies List of zombie entity IDs
+     * @param {Object} scene La escena activa
+     * @param {number} cx Centro de la explosión X
+     * @param {number} cy Centro de la explosión Y
+     * @param {number} damage Daño base
+     * @param {number} splashRadius Radio de efecto
+     * @param {Array<number>} zombies Lista de IDs de entidades zombie
      */
     applySplashDamage(scene, cx, cy, damage, splashRadius, zombies) {
         const splashSq = splashRadius * splashRadius;
@@ -140,9 +140,9 @@ export class CollisionSystem extends System {
     }
 
     /**
-     * Enqueues damage on an entity.
-     * @param {number} entityId Target entity ID
-     * @param {number} amount Damage amount
+     * Encola el daño en una entidad.
+     * @param {number} entityId ID de la entidad objetivo
+     * @param {number} amount Cantidad de daño
      */
     dealDamage(entityId, amount) {
         console.log("DEAL DAMAGE", entityId, amount);
@@ -155,8 +155,8 @@ export class CollisionSystem extends System {
     }
 
     /**
-     * Cleans up visual and logical references of a projectile.
-     * @param {number} entityId Projectile entity ID
+     * Limpia las referencias lógicas y visuales de un proyectil.
+     * @param {number} entityId ID de la entidad proyectil
      */
     destroyProjectile(entityId) {
         const spriteComp = this.world.getComponent(entityId, SpriteComponent);

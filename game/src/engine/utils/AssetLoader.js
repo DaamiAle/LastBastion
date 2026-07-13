@@ -4,13 +4,13 @@ import { SpriteSheetMeta } from '../assets/SpriteSheetMeta.js';
 import { createFramesFromMeta } from './spriteFrames.js';
 
 /**
- * Static utility class responsible for preloading all game assets
- * including textures, spritesheets, and sound files.
+ * Clase de utilidad estática responsable de precargar todos los recursos (assets) del juego
+ * incluyendo texturas, hojas de sprites (spritesheets) y archivos de sonido.
  */
 export class AssetLoader {
     /**
-     * Loads all assets asynchronously and constructs a comprehensive assets dictionary.
-     * @returns {Promise<Object>} A dictionary containing all loaded textures and sound registrations.
+     * Carga todos los recursos asíncronamente y construye un diccionario completo de recursos.
+     * @returns {Promise<Object>} Un diccionario que contiene todas las texturas cargadas y registros de sonido.
      */
     static async loadAllAssets() {
         const assets = {};

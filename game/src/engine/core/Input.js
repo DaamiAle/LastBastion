@@ -1,21 +1,21 @@
 /**
- * Global input manager.
- * Tracks keyboard and mouse state across the application lifecycle.
+ * Administrador global de entradas (input).
+ * Rastrea el estado del teclado y el ratón a lo largo del ciclo de vida de la aplicación.
  */
 export class Input {
     /**
-     * Initializes input state structures and binds DOM event listeners.
+     * Inicializa las estructuras de estado de entrada y enlaza (binds) los escuchadores de eventos del DOM.
      */
     constructor() {
-        /** @type {Set<string>} Keys currently held down */
+        /** @type {Set<string>} Teclas actualmente mantenidas presionadas */
         this.keys = new Set();
-        /** @type {Set<string>} Keys pressed during the current frame */
+        /** @type {Set<string>} Teclas presionadas durante el fotograma actual */
         this.pressedKeys = new Set();
-        /** @type {Set<string>} Keys released during the current frame */
+        /** @type {Set<string>} Teclas soltadas durante el fotograma actual */
         this.releasedKeys = new Set();
         
         /** 
-         * Mouse state structure
+         * Estructura de estado del ratón
          * @type {{x: number, y: number, leftDown: boolean, leftPressed: boolean, leftReleased: boolean}}
          */
         this.mouse = {
@@ -64,34 +64,34 @@ export class Input {
     }
 
     /**
-     * Checks if a key is currently held down.
-     * @param {string} key The key code (e.g., "Space", "KeyW")
-     * @returns {boolean} True if the key is down
+     * Comprueba si una tecla está actualmente mantenida presionada.
+     * @param {string} key El código de la tecla (ej., "Space", "KeyW")
+     * @returns {boolean} Verdadero si la tecla está presionada
      */
     isKeyDown(key) {
         return this.keys.has(key);
     }
 
     /**
-     * Checks if a key was pressed precisely in the current frame.
-     * @param {string} key The key code
-     * @returns {boolean} True if the key was just pressed
+     * Comprueba si una tecla fue presionada precisamente en el fotograma actual.
+     * @param {string} key El código de la tecla
+     * @returns {boolean} Verdadero si la tecla acaba de ser presionada
      */
     wasKeyPressed(key) {
         return this.pressedKeys.has(key);
     }
 
     /**
-     * Checks if the left mouse button was pressed in the current frame.
-     * @returns {boolean} True if left mouse button was just pressed
+     * Comprueba si el botón izquierdo del ratón fue presionado en el fotograma actual.
+     * @returns {boolean} Verdadero si el botón izquierdo del ratón acaba de ser presionado
      */
     wasMousePressed() {
         return this.mouse.leftPressed;
     }
 
     /**
-     * Clears frame-specific input states.
-     * Must be called at the very end of the game loop update step.
+     * Limpia los estados de entrada específicos del fotograma.
+     * Debe ser llamado al final del paso de actualización del bucle del juego.
      */
     endFrame() {
         this.pressedKeys.clear();

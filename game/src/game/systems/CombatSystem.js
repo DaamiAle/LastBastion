@@ -6,14 +6,14 @@ import { ZombieAIComponent } from '../components/ZombieAIComponent.js';
 import { TurretAIComponent } from '../components/TurretAIComponent.js';
 
 /**
- * Processes entities with a DamageQueueComponent.
- * Acts separately from CollisionSystem to centralize damage logic, 
- * apply visual feedback (flashing), and handle entity death.
+ * Procesa las entidades que tienen un componente DamageQueueComponent.
+ * Actúa independientemente del CollisionSystem para centralizar la lógica de daño, 
+ * aplicar el feedback visual (parpadeo rojo) y manejar la muerte de la entidad.
  */
 export class CombatSystem extends System {
     /**
-     * @param {Object} world The ECS World
-     * @param {Object} sceneManager Reference to the SceneManager
+     * @param {Object} world El Mundo ECS
+     * @param {Object} sceneManager Referencia al SceneManager
      */
     constructor(world, sceneManager) {
         super(world);
@@ -21,32 +21,32 @@ export class CombatSystem extends System {
     }
 
     /**
-     * @param {Object} delta Time delta object
+     * @param {Object} delta Objeto delta de tiempo
      */
     update(delta) {
         const scene = this.sceneManager.currentScene;
         
-        // Get all entities that can receive damage and have a pending damage queue
+        // Obtener todas las entidades que pueden recibir daño y tienen daño pendiente
         const entities = this.world.getEntitiesWith(Health, DamageQueueComponent);
 
         for (const entityId of entities) {
             const health = this.world.getComponent(entityId, Health);
             const damageQueue = this.world.getComponent(entityId, DamageQueueComponent);
             
-            // If already dead, ignore incoming damage to avoid double rewards
+            // Si ya está muerta, ignorar daño entrante para evitar recompensas dobles
             if (!health.isAlive) continue;
 
-            // Accumulate all damage received this frame (e.g. multiple bullets hitting at once)
+            // Acumular todo el daño recibido en este fotograma
             let totalDamage = 0;
             for (const amount of damageQueue.damages) {
                 totalDamage += amount;
             }
 
             if (totalDamage > 0) {
-                // Apply damage
+                // Aplicar daño
                 health.hp -= totalDamage;
                 
-                // Visual feedback (temporal red tint)
+                // Feedback visual (tinte rojo temporal)
                 const spriteComp = this.world.getComponent(entityId, SpriteComponent);
                 if (spriteComp && spriteComp.container && spriteComp.container.children.length > 0) {
                     const sprite = spriteComp.container.children[0];
@@ -60,12 +60,12 @@ export class CombatSystem extends System {
                     }
                 }
 
-                // Check for death
+                // Chequear si muere
                 if (health.hp <= 0) {
                     health.hp = 0;
                     health.isAlive = false;
                     
-                    // Notify scene of entity death
+                    // Notificar a la escena de la muerte
                     if (scene) {
                         const isZombie = this.world.hasComponent(entityId, ZombieAIComponent);
                         if (isZombie && scene.onZombieKilled) {
@@ -78,19 +78,19 @@ export class CombatSystem extends System {
                         }
                     }
 
-                    // Visual cleanup: destroy rendered sprite
+                    // Limpieza visual: destruir el sprite renderizado
                     if (spriteComp && spriteComp.container) {
                         spriteComp.container.destroy({ children: true });
                         spriteComp.container = null;
                     }
                     
-                    // Mark entity for destruction at end of frame
+                    // Marcar entidad para ser destruida al final del fotograma
                     this.world.destroyEntity(entityId);
-                    continue; // Skip the rest of the loop for this entity
+                    continue; // Saltar el resto del bucle para esta entidad
                 }
             }
 
-            // Clean damage queue component so it isn't iterated next frame unless it takes damage again.
+            // Limpiar la cola de daño para que no se itere en el siguiente fotograma
             damageQueue.damages = [];
             this.world.removeComponent(entityId, DamageQueueComponent);
         }

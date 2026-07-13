@@ -31,7 +31,7 @@ export function assembleZombie(scene, x, y) {
     // 3. Health
     world.addComponent(entityId, new Health(config.maxHealth));
 
-    // 4. Boids
+    // 4. Boids (Bandada)
     world.addComponent(entityId, new BoidComponent(
         config.flockRadius,
         config.separationWeight,
@@ -62,20 +62,20 @@ export function assembleZombie(scene, x, y) {
         container.addChild(sprite);
     }
     
-    // We can add healthbar logic here if we create a HealthBar component.
-    // For now we add the container to the scene.
+    // Podemos añadir la lógica de la barra de vida aquí si creamos un componente HealthBar.
+    // Por ahora añadimos el contenedor a la escena.
     scene.container.addChild(container);
 
     const spriteComp = new SpriteComponent(container);
     world.addComponent(entityId, spriteComp);
 
-    // 6. AI & FSM
-    // We pass the entityId to the FSM as its owner
+    // 6. IA y Máquina de Estados Finitos (FSM)
+    // Pasamos el entityId a la FSM como su propietario
     const fsm = new FSM(entityId);
     
-    // Initialize AI Component with data needed by states
+    // Inicializar componente IA con los datos que necesitan los estados
     const aiComp = new ZombieAIComponent(fsm);
-    aiComp.scene = scene; // Temp injection for grid queries
+    aiComp.scene = scene; // Inyección temporal para consultas a la grilla (grid)
     aiComp.target = null;
     aiComp.targetPoint = null;
     aiComp.lastHeardNoiseId = null;
@@ -92,7 +92,7 @@ export function assembleZombie(scene, x, y) {
     
     fsm.change(new IdleState(entityId, scene.game.world));
 
-    // Also add to grid for collisions (temporarily still needed by scene)
+    // También añadir a la grilla para las colisiones (temporalmente aún lo necesita la escena)
     scene.grid.insert(entityId, x, y);
 
     return entityId;

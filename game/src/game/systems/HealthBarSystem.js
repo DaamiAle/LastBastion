@@ -4,12 +4,12 @@ import { SpriteComponent } from '../components/SpriteComponent.js';
 import { Container, Sprite } from 'pixi.js';
 
 /**
- * Handles rendering of dynamic health bars floating above entities.
+ * Se encarga de renderizar las barras de vida dinámicas que flotan sobre las entidades.
  */
 export class HealthBarSystem extends System {
     /**
-     * @param {Object} world The ECS World
-     * @param {Object} sceneManager Reference to the SceneManager
+     * @param {Object} world El Mundo ECS
+     * @param {Object} sceneManager Referencia al SceneManager
      */
     constructor(world, sceneManager) {
         super(world);

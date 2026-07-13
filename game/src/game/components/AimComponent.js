@@ -1,11 +1,11 @@
 import { Component } from '../../engine/ecs/Component.js';
 
 /**
- * Component that holds a reference to a sprite barrel that needs to be rotated to aim at targets.
+ * Componente que guarda una referencia al cañón (sprite) que debe rotarse para apuntar a los objetivos.
  */
 export class AimComponent extends Component {
     /**
-     * @param {import('pixi.js').Sprite} barrelSprite The PixiJS sprite representing the gun barrel
+     * @param {import('pixi.js').Sprite} barrelSprite El sprite de PixiJS que representa el cañón del arma
      */
     constructor(barrelSprite) {
         super();

@@ -1,21 +1,21 @@
 import { Component } from '../../engine/ecs/Component.js';
 
 /**
- * AI logic and stats component for Turrets.
- * Tracks target acquisition, firing rate, and upgrade state.
+ * Componente de lógica de IA y estadísticas para las Torretas.
+ * Rastrea la adquisición de objetivos, cadencia de tiro y estado de mejora.
  */
 export class TurretAIComponent extends Component {
     /**
-     * @param {string} turretType 'machinegun', 'cannon', or 'sniper'
-     * @param {number} fireRate Time in milliseconds between shots
-     * @param {number} range Maximum target detection radius
-     * @param {number} damage Damage dealt per shot
-     * @param {number} noiseRadius Radius of the sound wave emitted upon firing
-     * @param {number} noiseTtlMs How long the sound wave persists
-     * @param {number} noiseStrength Strength/priority of the sound wave for zombie attraction
-     * @param {number} projectileSpeed Pixels per frame velocity of the bullet
-     * @param {number} splashRadius Area of effect radius for the bullet (0 for direct hit)
-     * @param {number} color Hex color code for the bullet
+     * @param {string} turretType 'machinegun', 'cannon', o 'sniper'
+     * @param {number} fireRate Tiempo en milisegundos entre disparos
+     * @param {number} range Radio máximo de detección de objetivos
+     * @param {number} damage Daño infligido por disparo
+     * @param {number} noiseRadius Radio de la onda de sonido emitida al disparar
+     * @param {number} noiseTtlMs Cuánto tiempo persiste la onda de sonido
+     * @param {number} noiseStrength Fuerza/prioridad de la onda de sonido para la atracción de zombies
+     * @param {number} projectileSpeed Velocidad en píxeles por fotograma de la bala
+     * @param {number} splashRadius Radio de área de efecto para la bala (0 para impacto directo)
+     * @param {number} color Código de color hexadecimal para la bala
      */
     constructor(turretType, fireRate, range, damage, noiseRadius, noiseTtlMs, noiseStrength, projectileSpeed, splashRadius, color) {
         super();
@@ -42,17 +42,17 @@ export class TurretAIComponent extends Component {
         /** @type {number} */
         this.color = color;
         
-        /** @type {Object|number|null} Current target entity (ECS ID or classic Entity) */
+        /** @type {Object|number|null} Entidad objetivo actual (ID de ECS o Entidad clásica) */
         this.target = null;
 
-        // Upgrade data
-        /** @type {number} Current overall turret level */
+        // Datos de mejora
+        /** @type {number} Nivel general actual de la torreta */
         this.level = 1;
-        /** @type {number} Total coins invested in this turret */
+        /** @type {number} Monedas totales invertidas en esta torreta */
         this.invested = 0;
-        /** @type {number} Base cost of the turret */
+        /** @type {number} Costo base de la torreta */
         this.cost = 0;
-        /** @type {{damage: number, range: number, cadence: number}} Upgrade counters per stat */
+        /** @type {{damage: number, range: number, cadence: number}} Contadores de mejora por estadística */
         this.upgradeLevels = {
             damage: 0,
             range: 0,

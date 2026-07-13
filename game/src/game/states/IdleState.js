@@ -5,13 +5,13 @@ import { ZombieAIComponent } from '../components/ZombieAIComponent.js';
 import { Transform } from '../components/Transform.js';
 
 /**
- * Initial or standby state for a zombie.
- * Transitions to ChaseState once stimulus is processed.
+ * Estado inicial o de espera para un zombie.
+ * Transiciona a ChaseState una vez que se procesa el estímulo.
  */
 export class IdleState extends State {
     /**
-     * @param {number} owner Entity ID
-     * @param {Object} world The ECS World
+     * @param {number} owner ID de la entidad
+     * @param {Object} world El Mundo ECS
      */
     constructor(owner, world) {
         super(owner);
@@ -19,7 +19,7 @@ export class IdleState extends State {
     }
 
     /**
-     * @param {Object} delta Time delta object
+     * @param {Object} delta Objeto delta de tiempo
      */
     update() {
         const entityId = this.owner;
@@ -28,7 +28,7 @@ export class IdleState extends State {
         
         if (!ai || !transform || !ai.scene) return;
 
-        // Create a pseudo-zombie object for scene.findZombieStimulus to work with
+        // Crear un objeto pseudo-zombie para que scene.findZombieStimulus pueda trabajar
         const pseudoZombie = {
             container: { x: transform.x, y: transform.y },
             lastHeardNoiseId: ai.lastHeardNoiseId,
