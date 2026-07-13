@@ -55,12 +55,15 @@ export class ChaseState extends State {
         }
 
         let targetX, targetY;
+        let targetRadius = 0;
+        
         if (ai.target) {
             if (typeof ai.target === 'number') {
                 const targetTransform = this.world.getComponent(ai.target, Transform);
                 if (targetTransform) {
                     targetX = targetTransform.x;
                     targetY = targetTransform.y;
+                    targetRadius = scene.game.config.turrets?.baseRadius ?? 18;
                 } else {
                     targetX = transform.x;
                     targetY = transform.y;
@@ -68,9 +71,9 @@ export class ChaseState extends State {
             } else {
                 targetX = ai.target.container ? ai.target.container.x : ai.target.x;
                 targetY = ai.target.container ? ai.target.container.y : ai.target.y;
+                targetRadius = ai.target.radius ?? 0;
             }
             
-            const targetRadius = ai.target.radius ?? 0;
             const engageRange = ai.attackRange + targetRadius;
             
             const distSq = distanceSq(transform.x, transform.y, targetX, targetY);

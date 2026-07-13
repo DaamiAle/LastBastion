@@ -42,7 +42,23 @@ export class AttackState extends State {
         const target = ai.target;
 
         // Validación: Sin objetivo o el objetivo está muerto
-        if (!target || target.isAlive === false) {
+        let isTargetAlive = true;
+        if (!target) {
+            isTargetAlive = false;
+        } else if (typeof target === 'number') {
+            const health = this.world.getComponent(target, Health);
+            if (!health || health.hp <= 0 || !health.isAlive) {
+                isTargetAlive = false;
+            }
+        } else {
+            // Para player o fortress (objetos)
+            if (target.isAlive === false || target.isDead === true || (target.hp !== undefined && target.hp <= 0)) {
+                isTargetAlive = false;
+            }
+        }
+
+        if (!isTargetAlive) {
+            ai.target = null;
             ai.fsm.change(new ChaseState(entityId, this.world));
             return;
         }

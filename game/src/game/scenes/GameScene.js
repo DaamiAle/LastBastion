@@ -1,4 +1,4 @@
-import { Graphics } from 'pixi.js';
+import { Graphics, TilingSprite, Sprite } from 'pixi.js';
 import { Scene } from '../../engine/core/Scene.js';
 import { distanceSq, randomFloat } from '../../engine/utils/Utils.js';
 import { SpatialHashGrid } from '../../engine/utils/SpatialHashGrid.js';
@@ -70,6 +70,7 @@ export class GameScene extends Scene {
         this.cameraLerp = config.camera.lerp;
 
         this.drawArena();
+        this.generateEnvironment();
 
         this.hud = new HUD(this.game, this.handleHudAction.bind(this));
         this.game.app.stage.addChild(this.hud.container);
@@ -114,9 +115,11 @@ export class GameScene extends Scene {
 
     drawArena() {
         const world = this.game.config.world;
-        const background = new Graphics()
-            .rect(0, 0, this.worldWidth, this.worldHeight)
-            .fill(world.backgroundColor);
+        const background = new TilingSprite({
+            texture: this.game.assets.envBackground,
+            width: this.worldWidth,
+            height: this.worldHeight
+        });
 
         const grid = new Graphics();
         for (let x = 0; x <= this.worldWidth; x += world.gridSize) {
@@ -125,7 +128,7 @@ export class GameScene extends Scene {
         for (let y = 0; y <= this.worldHeight; y += world.gridSize) {
             grid.moveTo(0, y).lineTo(this.worldWidth, y);
         }
-        grid.stroke({ color: world.gridColor, width: 1, alpha: 0.55 });
+        grid.stroke({ color: world.gridColor, width: 1, alpha: 0.25 });
 
         const dangerRing = new Graphics()
             .circle(this.worldWidth * 0.5, this.worldHeight * 0.5, world.dangerRingRadius)
@@ -134,6 +137,48 @@ export class GameScene extends Scene {
         this.container.addChild(background);
         this.container.addChild(grid);
         this.container.addChild(dangerRing);
+    }
+
+    generateEnvironment() {
+        const numProps = 80;
+        const centerX = this.worldWidth * 0.5;
+        const centerY = this.worldHeight * 0.5;
+        const propTextures = [
+            this.game.assets.envTree,
+            this.game.assets.envRock,
+            this.game.assets.envRocks,
+            this.game.assets.envBush
+        ];
+        
+        const safeRadiusSq = 300 * 300;
+        
+        for (let i = 0; i < numProps; i++) {
+            const x = randomFloat(0, this.worldWidth);
+            const y = randomFloat(0, this.worldHeight);
+            
+            if (distanceSq(x, y, centerX, centerY) < safeRadiusSq) {
+                continue;
+            }
+            
+            const tex = propTextures[Math.floor(Math.random() * propTextures.length)];
+            const prop = new Sprite(tex);
+            prop.anchor.set(0.5);
+            prop.x = x;
+            prop.y = y;
+            const propScale = randomFloat(0.8, 1.2);
+            prop.scale.set(propScale);
+            
+            this.container.addChild(prop);
+            
+            if (tex === this.game.assets.envRock || tex === this.game.assets.envRocks) {
+                if (!this.environmentObstacles) this.environmentObstacles = [];
+                this.environmentObstacles.push({
+                    x: x,
+                    y: y,
+                    radius: 40 * propScale
+                });
+            }
+        }
     }
 
     /**

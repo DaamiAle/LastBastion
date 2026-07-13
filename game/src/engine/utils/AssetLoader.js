@@ -64,7 +64,12 @@ export class AssetLoader {
             explosivePlantedTexture,
             placeC4Texture,
             placeLandmineTexture,
-            placeTimebombTexture
+            placeTimebombTexture,
+            envBackground,
+            envTree,
+            envRock,
+            envRocks,
+            envBush
         ] = await Promise.all([
             Assets.load('/assets/zombie.png'),
             Assets.load('/assets/sprites/bastion_base.png'),
@@ -110,7 +115,12 @@ export class AssetLoader {
             Assets.load('/assets/sprites/survivor_drop/explosive_planted.png'),
             Assets.load('/assets/sprites/survivor_drop/place_c4bomb.png'),
             Assets.load('/assets/sprites/survivor_drop/place_landmine.png'),
-            Assets.load('/assets/sprites/survivor_drop/place_timebomb.png')
+            Assets.load('/assets/sprites/survivor_drop/place_timebomb.png'),
+            Assets.load('/assets/sprites/environment/background.png'),
+            Assets.load('/assets/sprites/environment/tree.png'),
+            Assets.load('/assets/sprites/environment/rock.png'),
+            Assets.load('/assets/sprites/environment/rocks.png'),
+            Assets.load('/assets/sprites/environment/bush.png')
         ]);
 
         assets.playerWalk = walkTexture;
@@ -132,6 +142,11 @@ export class AssetLoader {
         assets.placeC4Texture = placeC4Texture;
         assets.placeLandmineTexture = placeLandmineTexture;
         assets.placeTimebombTexture = placeTimebombTexture;
+        assets.envBackground = envBackground;
+        assets.envTree = envTree;
+        assets.envRock = envRock;
+        assets.envRocks = envRocks;
+        assets.envBush = envBush;
         
         if (!sound.exists('cannon_shoot')) sound.add('cannon_shoot', '/assets/sound/cannon_shoot.wav');
         if (!sound.exists('explosive_explode')) sound.add('explosive_explode', '/assets/sound/explosive_explode.wav');

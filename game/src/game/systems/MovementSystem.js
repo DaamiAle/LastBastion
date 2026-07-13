@@ -3,6 +3,7 @@ import { Transform } from '../components/Transform.js';
 import { Velocity } from '../components/Velocity.js';
 import { BoidComponent } from '../components/BoidComponent.js';
 import { TurretAIComponent } from '../components/TurretAIComponent.js';
+import { ZombieAIComponent } from '../components/ZombieAIComponent.js';
 
 /**
  * Actualiza las posiciones de todas las entidades con un componente Velocity.
@@ -32,6 +33,15 @@ export class MovementSystem extends System {
             const transform = this.world.getComponent(entityId, Transform);
             const velocity = this.world.getComponent(entityId, Velocity);
             const boid = this.world.getComponent(entityId, BoidComponent);
+            const ai = this.world.getComponent(entityId, ZombieAIComponent);
+            
+            // Si el zombie está atacando, se frena completamente y no procesa Boids.
+            // Al estar frenado, otros zombies se separarán de él, creando un cerco natural.
+            if (ai && ai.fsm.current?.constructor.name === 'AttackState') {
+                velocity.dx = 0;
+                velocity.dy = 0;
+                continue;
+            }
             
             let sepDx = 0, sepDy = 0;
             let aliDx = 0, aliDy = 0;
@@ -150,6 +160,22 @@ export class MovementSystem extends System {
                         const distance = Math.hypot(dx, dy) || 0.0001;
                         // Los slots son de 40x40 (radio 20). Sumar radio del zombie (16) + relleno (8).
                         const minDistance = 20 + 24;
+
+                        if (distance < minDistance) {
+                            const push = minDistance - distance;
+                            transform.x += (dx / distance) * push;
+                            transform.y += (dy / distance) * push;
+                        }
+                    }
+                }
+
+                // Colisión con Obstáculos del Entorno (Rocas)
+                if (scene && scene.environmentObstacles) {
+                    for (const obs of scene.environmentObstacles) {
+                        const dx = transform.x - obs.x;
+                        const dy = transform.y - obs.y;
+                        const distance = Math.hypot(dx, dy) || 0.0001;
+                        const minDistance = obs.radius + 16; // 16 es el radio físico del zombie aprox.
 
                         if (distance < minDistance) {
                             const push = minDistance - distance;
